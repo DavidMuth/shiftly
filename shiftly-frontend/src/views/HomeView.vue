@@ -4,6 +4,6 @@ import TheWelcome from '../components/TheWelcome.vue'
 
 <template>
   <main>
-    <TheWelcome />
+    <v-btn>Hello you fucking bitch</v-btn>
   </main>
 </template>
