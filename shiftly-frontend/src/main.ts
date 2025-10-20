@@ -12,7 +12,10 @@ import router from './router'
 
 const vuetify = createVuetify({
     components,
-    directives
+    directives,
+    theme: {
+        defaultTheme: 'system'
+    }
 })
 
 const app = createApp(App)
