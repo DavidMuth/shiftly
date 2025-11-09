@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import { RouterLink, RouterView } from 'vue-router'
 import NavBar from './components/NavBar.vue';
 import { useTheme } from 'vuetify'
 import logo from '@/assets/logo.svg'
@@ -39,9 +39,8 @@ function toggleTheme() {
 
     <!-- Hauptinhalt -->
     <v-main>
-      <v-container class="py-10">
-        <h1>Willkommen!</h1>
-        <p>Hier kommt der Hauptinhalt.</p>
+      <v-container>
+        <RouterView />
       </v-container>
     </v-main>
   </v-app>

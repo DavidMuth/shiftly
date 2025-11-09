@@ -19,9 +19,9 @@
 
     <!-- Navigation -->
     <v-list density="compact" nav>
-      <v-list-item prepend-icon="mdi-home" title="Dashboard" :to="{ name: 'about' }"></v-list-item>
-      <v-list-item prepend-icon="mdi-account-multiple" title="Shared with me" value="shared"></v-list-item>
-      <v-list-item prepend-icon="mdi-star" title="Starred" value="starred"></v-list-item>
+      <v-list-item prepend-icon="mdi-home" title="Dashboard" :to="{ name: 'dashboard' }"></v-list-item>
+      <v-list-item prepend-icon="mdi-home" title="Time Tracker" :to="{ name: 'time-tracker' }"></v-list-item>
+      <v-list-item prepend-icon="mdi-home" title="Settings" :to="{ name: 'settings' }"></v-list-item>
     </v-list>
   </v-navigation-drawer>
 </template>

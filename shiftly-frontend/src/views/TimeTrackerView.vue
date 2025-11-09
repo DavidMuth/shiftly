@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container>
-        grüß gott
+        <h1>This is the Time Tracker page</h1>
       </v-container>
     </v-main>
   </v-app>
