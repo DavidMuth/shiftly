@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 import NavBar from './components/NavBar.vue';
 import { useTheme } from 'vuetify'
 import logo from '@/assets/logo.svg'
@@ -23,10 +23,10 @@ function toggleTheme() {
         :src="logo"
         :max-width="150"
         :max-height="400"
-      ></v-img>     
+      ></v-img>
 
       <v-spacer></v-spacer>
-      
+
        <v-btn
       @click="toggleTheme"
     >
