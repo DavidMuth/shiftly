@@ -1,14 +1,24 @@
 <template>
-    <!-- Toggle between Light / Dark -->
+  <v-container class="py-10 text-center">
     <v-btn
-        @click="theme.toggle()"
-        text="Toggle Light / Dark"
-        color="primary"
-    ></v-btn>
+      color="primary"
+      @click="toggleTheme"
+    >
+      Toggle {{ theme.global.current.value === 'light' ? 'Dark' : 'Light' }} Mode
+    </v-btn>
+  </v-container>
 </template>
 
 <script setup lang="ts">
-    import { useTheme } from 'vuetify'
+import { useTheme } from 'vuetify'
 
-    const theme = useTheme()
+const theme = useTheme()
+
+function toggleTheme() {
+  // Switch between 'light' and 'dark'
+  if (theme.name.value === 'dark')
+    theme.change('light')
+  else{theme.change('dark')}
+
+}
 </script>
