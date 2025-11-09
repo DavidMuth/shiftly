@@ -29,8 +29,6 @@ function toggleTheme() {
     </v-btn>
     </v-app-bar>
 
-
-
     <!-- Sidebar -->
     <NavBar />
 
@@ -41,13 +39,6 @@ function toggleTheme() {
         <p>Hier kommt der Hauptinhalt.</p>
       </v-container>
     </v-main>
-
-    <!-- Footer -->
-    <v-footer app padless>
-      <v-col class="text-center" cols="12">
-        &copy; 2025 Meine App
-      </v-col>
-    </v-footer>
   </v-app>
 </template>
 
