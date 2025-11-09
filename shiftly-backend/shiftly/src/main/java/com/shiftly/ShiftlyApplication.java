@@ -1,4 +1,4 @@
-package com.shiftly.shiftly;
+package com.shiftly;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
