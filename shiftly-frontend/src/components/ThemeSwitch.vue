@@ -4,7 +4,7 @@
       color="primary"
       @click="toggleTheme"
     >
-      Toggle {{ theme.global.current.value === 'light' ? 'Dark' : 'Light' }} Mode
+      Toggle {{ theme.name.value === 'light' ? 'Dark' : 'Light' }} Mode
     </v-btn>
   </v-container>
 </template>
