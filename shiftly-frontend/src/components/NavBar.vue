@@ -9,10 +9,15 @@
     <!-- User Info -->
     <v-list>
       <v-list-item
-        prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg"
         subtitle="sandra_a88@gmail.com"
         title="Sandra Adams"
-      ></v-list-item>
+      >
+        <template v-slot:prepend>
+          <v-avatar color="secondary">
+            <span class="text-xs">SA</span>
+          </v-avatar>
+        </template>
+      </v-list-item>
     </v-list>
 
     <v-divider></v-divider>
