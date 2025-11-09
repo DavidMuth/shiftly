@@ -25,7 +25,7 @@ const vuetify = createVuetify({
     themes: {
       light: {
          colors: {
-        primary: '#3B82F6', // Bright blue accent (buttons, highlights)
+        primary: '#5A6ACF', // Bright blue accent (buttons, highlights)
         secondary: '#64748B', // Muted blue-gray for UI elements
         accent: '#2563EB', // Stronger blue for active states
         background: '#F9FAFB', // App background
@@ -41,7 +41,7 @@ const vuetify = createVuetify({
       },
       dark: {
         colors: {
-        primary: '#60A5FA',
+        primary: '#5A6ACF',
         secondary: '#94A3B8',
         accent: '#3B82F6',
         background: '#0F172A',

@@ -4,6 +4,7 @@
     permanent
     rail
     app
+    color="primary"
   >
     <!-- User Info -->
     <v-list>
