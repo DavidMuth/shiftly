@@ -3,6 +3,7 @@
     <v-btn
         @click="theme.toggle()"
         text="Toggle Light / Dark"
+        color="primary"
     ></v-btn>
 </template>
 
