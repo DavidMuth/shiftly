@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-// @ts-ignore
+
 import NavBar from './components/NavBar.vue';
 import { useTheme } from 'vuetify'
 
