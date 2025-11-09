@@ -2,6 +2,7 @@
 
 import NavBar from './components/NavBar.vue';
 import { useTheme } from 'vuetify'
+import logo from '@/assets/logo.svg'
 
 const theme = useTheme()
 
@@ -17,11 +18,16 @@ function toggleTheme() {
 <template>
   <v-app>
     <!-- Navbar / AppBar -->
-    <v-app-bar app color="primary" dark>
-      <v-toolbar-title>Meine App</v-toolbar-title>
-      <v-spacer></v-spacer>
-       <v-btn
+    <v-app-bar app dark>
+      <v-img
+        :src="logo"
+        :max-width="150"
+        :max-height="400"
+      ></v-img>     
 
+      <v-spacer></v-spacer>
+      
+       <v-btn
       @click="toggleTheme"
     >
       Toggle {{ theme.name.value === 'light' ? 'Dark' : 'Light' }} Mode
