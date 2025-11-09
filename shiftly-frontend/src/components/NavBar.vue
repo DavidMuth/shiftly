@@ -14,7 +14,7 @@
       >
         <template v-slot:prepend>
           <v-avatar color="secondary">
-            <span class="text-xs">SA</span>
+            <span style="font-size: large;">SA</span>
           </v-avatar>
         </template>
       </v-list-item>
@@ -24,9 +24,9 @@
 
     <!-- Navigation -->
     <v-list density="compact" nav>
-      <v-list-item prepend-icon="mdi-home" title="Dashboard" :to="{ name: 'dashboard' }"></v-list-item>
-      <v-list-item prepend-icon="mdi-home" title="Time Tracker" :to="{ name: 'time-tracker' }"></v-list-item>
-      <v-list-item prepend-icon="mdi-home" title="Settings" :to="{ name: 'settings' }"></v-list-item>
+      <v-list-item link prepend-icon="mdi-home" title="Dashboard" :to="{ name: 'dashboard' }"></v-list-item>
+      <v-list-item link prepend-icon="mdi-clock-outline" title="Time Tracker" :to="{ name: 'time-tracker' }"></v-list-item>
+      <v-list-item link prepend-icon="mdi-cog-outline" title="Settings" :to="{ name: 'settings' }"></v-list-item>
     </v-list>
   </v-navigation-drawer>
 </template>
