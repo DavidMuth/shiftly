@@ -16,7 +16,6 @@ import java.util.Optional;
 
 @Repository
 public class UserRepository {
-
     private final JdbcTemplate jdbcTemplate;
 
     private final RowMapper<User> userRowMapper = (rs, rowNum) ->
@@ -65,7 +64,6 @@ public class UserRepository {
             return Optional.empty();
         }
     }
-
 
     public User create(User user) {
         String sql = "INSERT INTO user(name, email, password_hash, working_hours) VALUES (?, ?, ?, ?)";

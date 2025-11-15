@@ -1,7 +1,9 @@
 package com.shiftly.controllers;
 
-import com.shiftly.models.User;
-import com.shiftly.repositories.UserRepository;
+import com.shiftly.dto.CreateUserRequest;
+import com.shiftly.dto.UserResponse;
+import com.shiftly.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,40 +12,25 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id " + id));
+    public ResponseEntity<UserResponse> getUserById(@PathVariable int id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @GetMapping("/{name}")
-    public User getUserById(@PathVariable String name) {
-        return userRepository.findByName(name)
-                .orElseThrow(() -> new RuntimeException("User not found with name " + name));
+    @GetMapping("/by-name/{name}")
+    public ResponseEntity<UserResponse> getUserByName(@PathVariable String name) {
+        return ResponseEntity.ok(userService.getUserByName(name));
     }
-
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        User createdUser = userRepository.create(user);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdUser);
-    }
-
-    @PutMapping
-    public String updateUser(@RequestBody User user) {
-        return "updated user";
-    }
-
-    @DeleteMapping
-    public String deleteUser(@RequestBody User user) {
-        return "deleted user";
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+        UserResponse response = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
