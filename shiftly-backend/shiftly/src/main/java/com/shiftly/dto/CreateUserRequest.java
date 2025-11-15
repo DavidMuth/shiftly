@@ -35,6 +35,11 @@ public class CreateUserRequest {
     public String getConfirmPassword() {return confirmPassword;}
     public void setConfirmPassword(String confirmPassword) {this.confirmPassword = confirmPassword;}
 
-    public int getWorkingHours() { return workingHours; }
+    public int getWorkingHours() {
+        if (this.workingHours == 0) {
+            workingHours = 20;
+        }
+        return workingHours;
+    }
     public void setWorkingHours(int workingHours) { this.workingHours = workingHours; }
 }

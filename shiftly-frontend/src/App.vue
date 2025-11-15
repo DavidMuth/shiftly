@@ -3,8 +3,14 @@ import { RouterView } from 'vue-router'
 import NavBar from './components/NavBar.vue';
 import { useTheme } from 'vuetify'
 import logo from '@/assets/logo.svg'
+import { onMounted, ref } from 'vue';
+import UserService from './services/UserService';
+import type { User } from './types/User';
 
 const theme = useTheme()
+
+const users = ref<User>();
+const loading = ref(true);
 
 function toggleTheme() {
   // Switch between 'light' and 'dark'
@@ -13,6 +19,15 @@ function toggleTheme() {
   else{theme.change('dark')}
 
 }
+
+onMounted(async () => {
+  try {
+    const { data } = await UserService.get(6)
+    console.log(data)
+  } finally {
+    loading.value = false;
+  }
+})
 </script>
 
 <template>

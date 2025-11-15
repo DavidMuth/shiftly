@@ -63,4 +63,18 @@ public class UserService {
 
         return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getWorkingHours());
     }
+
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email " + email));
+
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getWorkingHours());
+    }
+
+    public String getUserPasswordHash(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email " + email));
+
+        return user.getPasswordHash();
+    }
 }

@@ -10,7 +10,11 @@ public class UserResponse {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.workingHours = workingHours;
+        if (workingHours == 0) {
+            this.workingHours = 20;
+        } else {
+            this.workingHours = workingHours;
+        }
     }
 
     public int getId() { return id; }
