@@ -1,4 +1,6 @@
-import axios from "axios";
+import router from "@/router";
+import { useAuthStore } from "@/stores/Auth";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -12,21 +14,30 @@ const apiClient = axios.create({
     }
 });
 
-// Optional: add interceptors
-apiClient.interceptors.request.use(config => {
-    // Example: attach token
-    const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-});
-
-apiClient.interceptors.response.use(
-    response => response,
-    error => {
-        // Global error handling
-        console.error("API Error:", error);
-        return Promise.reject(error);
+// Request interceptor
+axios.interceptors.request.use(
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+    const authStore = useAuthStore()
+    if (authStore.token && config.headers) {
+      config.headers.Authorization = `Bearer ${authStore.token}`
     }
-);
+    return config
+  },
+  (error: AxiosError) => Promise.reject(error)
+)
+
+
+// Response interceptor
+axios.interceptors.response.use(
+  response => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      const authStore = useAuthStore()
+      authStore.logout()
+      router.push('/login')
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default apiClient;

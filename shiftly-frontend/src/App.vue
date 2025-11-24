@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import NavBar from './components/NavBar.vue';
+import { RouterView, useRoute } from 'vue-router'
+import NavBar from './components/NavBar.vue'
 import { useTheme } from 'vuetify'
 import logo from '@/assets/logo.svg'
-import { onMounted, ref } from 'vue';
-import UserService from './services/UserService';
-import type { User } from './types/User';
+import { onMounted, ref, computed } from 'vue'
+import UserService from './services/UserService'
+import type { User } from './types/User'
 
 const theme = useTheme()
+const route = useRoute()
 
-const users = ref<User>();
-const loading = ref(true);
+const users = ref<User>()
+const loading = ref(true)
+
+// HIDE LAYOUT ON LOGIN ROUTE
+const hideLayout = computed(() => route.path === "/login")
 
 function toggleTheme() {
-  // Switch between 'light' and 'dark'
-  if (theme.name.value === 'dark')
-    theme.change('light')
-  else{theme.change('dark')}
-
+  if (theme.name.value === 'dark') theme.change('light')
+  else theme.change('dark')
 }
 
 onMounted(async () => {
@@ -25,39 +26,33 @@ onMounted(async () => {
     const { data } = await UserService.get(6)
     console.log(data)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 })
 </script>
 
 <template>
   <v-app>
-    <!-- Navbar / AppBar -->
-    <v-app-bar app dark>
-      <v-img
-        :src="logo"
-        :max-width="150"
-        :max-height="400"
-      ></v-img>
 
+    <!-- APP BAR -> deaktiviert bei Login -->
+    <v-app-bar v-if="!hideLayout" app dark>
+      <v-img :src="logo" :max-width="150" :max-height="400" />
       <v-spacer></v-spacer>
 
-       <v-btn
-      @click="toggleTheme"
-    >
-      Toggle {{ theme.name.value === 'light' ? 'Dark' : 'Light' }} Mode
-    </v-btn>
+      <v-btn @click="toggleTheme">
+        Toggle {{ theme.name.value === 'light' ? 'Dark' : 'Light' }} Mode
+      </v-btn>
     </v-app-bar>
 
-    <!-- Sidebar -->
-    <NavBar />
+    <!-- SIDEBAR -> deaktiviert bei Login -->
+    <NavBar v-if="!hideLayout" />
 
-    <!-- Hauptinhalt -->
+    <!-- MAIN -->
     <v-main>
       <v-container>
         <RouterView />
       </v-container>
     </v-main>
+
   </v-app>
 </template>
-
