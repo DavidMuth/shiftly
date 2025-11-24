@@ -1,10 +1,10 @@
 export interface LoginCredentials {
-  username: string
+  email: string
   password: string
 }
 
 export interface LoginResponse {
-  token: string
+  jwtToken: string
   user?: User
 }
 

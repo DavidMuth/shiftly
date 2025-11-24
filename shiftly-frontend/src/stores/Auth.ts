@@ -23,8 +23,8 @@ export const useAuthStore = defineStore('Auth', {
     async login(credentials: LoginCredentials): Promise<boolean> {
       try {
         const response = await AuthService.signin(credentials) as unknown as LoginResponse
-        this.token = response.token
-        this.user = response.user || null
+        console.log('Login response:', response)
+        this.token = response.data.jwtToken
 
         localStorage.setItem('token', this.token)
 

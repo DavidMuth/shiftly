@@ -12,7 +12,7 @@
 
           <!-- Username -->
           <v-text-field
-            v-model="username"
+            v-model="credentials.email"
             label="Username"
             variant="outlined"
             density="comfortable"
@@ -21,7 +21,7 @@
 
           <!-- Password -->
           <v-text-field
-            v-model="password"
+            v-model="credentials.password"
             label="Password"
             type="password"
             variant="outlined"
@@ -72,12 +72,8 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-
-const username = ref('')
-const password = ref('')
-
 const credentials = reactive<LoginCredentials>({
-  username: '',
+  email: '',
   password: ''
 })
 
