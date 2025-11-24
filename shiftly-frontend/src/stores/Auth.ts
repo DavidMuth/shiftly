@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
 import type { User, LoginCredentials, LoginResponse } from '@/types/Auth'
+import AuthService from '@/services/AuthService'
+
 
 interface AuthState {
   token: string | null
@@ -21,9 +22,9 @@ export const useAuthStore = defineStore('Auth', {
   actions: {
     async login(credentials: LoginCredentials): Promise<boolean> {
       try {
-        const response = await axios.post<LoginResponse>('/api/auth/login', credentials)
-        this.token = response.data.token
-        this.user = response.data.user || null
+        const response = await AuthService.signin(credentials) as unknown as LoginResponse
+        this.token = response.token
+        this.user = response.user || null
 
         localStorage.setItem('token', this.token)
 
@@ -39,15 +40,5 @@ export const useAuthStore = defineStore('Auth', {
       this.user = null
       localStorage.removeItem('token')
     },
-
-    async fetchUser(): Promise<void> {
-      try {
-        const response = await axios.get<User>('/api/auth/me')
-        this.user = response.data
-      } catch (error) {
-        console.error('Failed to fetch user:', error)
-        this.logout()
-      }
-    }
   }
 })
