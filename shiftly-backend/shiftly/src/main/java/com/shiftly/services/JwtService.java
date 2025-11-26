@@ -21,6 +21,8 @@ public class JwtService {
         SECRET = secret;
     }
 
+    public String getSecret() {return SECRET;}
+
     public static void setExpiration(long expiration) {
         EXPIRATION = expiration;
     }
@@ -90,15 +92,13 @@ public class JwtService {
     }
 
     // Validate token
-    public static Boolean validateToken(String token, String email) {
-        final String extractedEmail = extractEmail(token);
-        return (extractedEmail.equals(email) && !isTokenExpired(token));
-    }
-
-    // Validate token (simplified - just check if valid and not expired)
-    public static Boolean validateToken(String token) {
+    public Boolean validateToken(String token) {
         try {
-            return !isTokenExpired(token);
+            Claims claims = extractAllClaims(token);
+            if (isTokenExpired(token)) return false;
+
+            String email = (String) claims.get("email");
+            return email != null && !email.isBlank();
         } catch (Exception e) {
             return false;
         }
