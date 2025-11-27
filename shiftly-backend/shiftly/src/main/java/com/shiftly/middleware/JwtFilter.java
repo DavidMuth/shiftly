@@ -12,23 +12,29 @@ import java.io.IOException;
 @WebFilter(filterName = "JWTFilter", urlPatterns = "/api/shiftly/*")
 public class JwtFilter implements Filter {
 
-    JwtService jwtService = new JwtService();
+    private final JwtService jwtService = new JwtService();
 
-
-    public void doFilter(@RequestHeader ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
         String token = httpRequest.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7); // Gets rid of the "Bearer" and leaves the token
             if (jwtService.validateToken(token)) {
-                HttpServletResponse httpResponse = (HttpServletResponse)  response;
+                int userId = jwtService.extractUserId(token);
+                String email = jwtService.extractEmail(token);
+                httpRequest.setAttribute("userId", userId);
+                httpRequest.setAttribute("email", email);
+
                 chain.doFilter(request, response);
             } else {
-                ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
+                httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
             }
         } else {
-            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing");
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing");
         }
     }
 }
