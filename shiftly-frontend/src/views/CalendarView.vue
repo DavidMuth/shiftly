@@ -1,15 +1,44 @@
 <template>
   <v-row class="fill-height">
+    <v-col><v-btn color="primary">Add Event</v-btn></v-col>
     <v-col>
-      <v-sheet height="600">
+      <v-menu
+        v-model="menu"
+        :close-on-content-click="false"
+        transition="scale-transition"
+        offset-y
+        min-width="290px"
+      >
+        <template #activator="{ props }">
+          <v-text-field
+            v-model="selectedDate"
+            label="Datum wählen"
+            readonly
+            v-bind="props"
+            style="margin-bottom: 1em;"
+            :formatter="formatDay"
+          ></v-text-field>
+        </template>
+
+        <v-date-picker
+          v-model="selectedDate"
+          :first-day-of-week="1"
+          @update:model-value="menu = false"
+        ></v-date-picker>
+      </v-menu>
+
+
+    </v-col>
+  </v-row>
+  <v-sheet height="600">
         <v-calendar
           ref="calendar"
-          v-model="value"
+          v-model="selectedDate"
           :event-color="getEventColor"
           :event-ripple="false"
           :events="events"
           color="primary"
-          type="4day"
+          type="week"
           @change="getEvents"
           @mousedown:event="startDrag"
           @mousedown:time="startTime"
@@ -17,9 +46,9 @@
           @mousemove:time="mouseMove"
           @mouseup:time="endDrag"
         >
-          <template v-slot:event="{ event, timed, eventSummary }">
+          <template v-slot:event="{ event, timed }">
             <div class="v-event-draggable">
-              <component :is="eventSummary"></component>
+              <strong>{{ getDay(event.start) }}</strong> - {{ event.name }}
             </div>
             <div
               v-if="timed"
@@ -29,16 +58,13 @@
           </template>
         </v-calendar>
       </v-sheet>
-    </v-col>
-  </v-row>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { VCalendar } from 'vuetify/labs/VCalendar'
-import { VRow, VCol, VSheet } from 'vuetify/components'
+import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
 
-/** Typ für Mouse/Time Event */
 interface Tms {
   year: number
   month: number
@@ -47,22 +73,26 @@ interface Tms {
   minute: number
 }
 
-const value = ref<string>('')
-const events = ref<any[]>([]) // Vuetify-internes Event, daher any
+// Datum für Calendar & DatePicker
+const selectedDate = ref(new Date().toISOString().substring(0, 10))
+const menu = ref(false)
 
-/** Farben und Namen */
+// Events
+const events = ref<any[]>([])
+
+// Farben & Namen für Zufallsevents
 const colors = ['#2196F3', '#3F51B5', '#673AB7', '#00BCD4', '#4CAF50', '#FF9800', '#757575']
 const names = ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party']
 
-/** Drag & Create Events */
+// Drag & Create
 const dragEvent = ref<any | null>(null)
 const dragTime = ref<number | null>(null)
 const createEvent = ref<any | null>(null)
 const createStart = ref<number | null>(null)
 const extendOriginal = ref<number | null>(null)
 
-/** Drag starten */
-function startDrag(_nativeEvent: MouseEvent, { event, timed }: { event: any, timed: boolean }) {
+// Drag starten
+function startDrag(_e: Event, { event, timed }: { event: any; timed: boolean }) {
   if (event && timed) {
     dragEvent.value = event
     dragTime.value = null
@@ -70,8 +100,8 @@ function startDrag(_nativeEvent: MouseEvent, { event, timed }: { event: any, tim
   }
 }
 
-/** Neue Event-Erstellung oder Drag-Start */
-function startTime(_nativeEvent: MouseEvent, tms: Tms) {
+// Drag oder neue Event-Erstellung starten
+function startTime(_e: Event, tms: Tms) {
   const mouse = toTime(tms)
 
   if (dragEvent.value && dragTime.value === null) {
@@ -89,15 +119,15 @@ function startTime(_nativeEvent: MouseEvent, tms: Tms) {
   }
 }
 
-/** Event verlängern */
+// Event verlängern
 function extendBottom(event: any) {
   createEvent.value = event
   createStart.value = event.start
   extendOriginal.value = event.end
 }
 
-/** Mouse-Move Event für Drag oder Erstellung */
-function mouseMove(_nativeEvent: MouseEvent, tms: Tms) {
+// Mouse-Move Event
+function mouseMove(_e: Event, tms: Tms) {
   const mouse = toTime(tms)
 
   if (dragEvent.value && dragTime.value !== null) {
@@ -112,7 +142,7 @@ function mouseMove(_nativeEvent: MouseEvent, tms: Tms) {
   }
 }
 
-/** Drag/Erstellung beenden */
+// Drag/Erstellung beenden
 function endDrag() {
   dragEvent.value = null
   dragTime.value = null
@@ -121,7 +151,7 @@ function endDrag() {
   extendOriginal.value = null
 }
 
-/** Drag/Erstellung abbrechen */
+// Drag/Erstellung abbrechen
 function cancelDrag() {
   if (createEvent.value) {
     if (extendOriginal.value !== null) {
@@ -138,18 +168,18 @@ function cancelDrag() {
   extendOriginal.value = null
 }
 
-/** Runden auf 15 Minuten */
+// Rundung auf 15 Minuten
 function roundTime(time: number, down = true): number {
   const roundTo = 15 * 60 * 1000
   return down ? time - (time % roundTo) : time + (roundTo - (time % roundTo))
 }
 
-/** Tms → Timestamp */
+// Tms → Timestamp
 function toTime(tms: Tms): number {
   return new Date(tms.year, tms.month - 1, tms.day, tms.hour, tms.minute).getTime()
 }
 
-/** Event-Farbe (TypeScript-kompatibel für Vuetify) */
+// Event-Farbe
 function getEventColor(event: any): string {
   const rgb = parseInt(event.color.slice(1), 16)
   const r = (rgb >> 16) & 0xff
@@ -161,8 +191,8 @@ function getEventColor(event: any): string {
     : event.color
 }
 
-/** Zufällige Events generieren */
-function getEvents({ start, end }: { start: { date: string }, end: { date: string } }) {
+// Zufällige Events generieren
+function getEvents({ start, end }: { start: { date: string }; end: { date: string } }) {
   const newEvents: any[] = []
   const min = new Date(`${start.date}T00:00:00`).getTime()
   const max = new Date(`${end.date}T23:59:59`).getTime()
@@ -186,16 +216,29 @@ function getEvents({ start, end }: { start: { date: string }, end: { date: strin
   events.value = newEvents
 }
 
-/** Zufallszahl */
+// Zufallszahl
 function rnd(a: number, b: number): number {
   return Math.floor(Math.random() * (b - a + 1)) + a
 }
 
-/** Zufälliges Array-Element */
+// Zufälliges Array-Element
 function rndElement<T>(arr: T[]): T {
   if (arr.length === 0) throw new Error('Array cannot be empty')
   const index = Math.floor(Math.random() * arr.length)
   return arr[index]!
+}
+
+// Hilfsfunktion: Liefert nur den Tag
+function getDay(input: Date | number, padZero = false): string {
+  const date = input instanceof Date ? input : new Date(input)
+  const day = date.getDate()
+  return padZero ? String(day).padStart(2, '0') : String(day)
+}
+
+// Formatter für Textfeld: nur Tag
+function formatDay(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return String(d.getDate()).padStart(2, '0')
 }
 </script>
 
