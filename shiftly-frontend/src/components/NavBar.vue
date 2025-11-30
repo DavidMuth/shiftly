@@ -26,6 +26,7 @@
     <v-list density="compact" nav>
       <v-list-item link prepend-icon="mdi-home" title="Dashboard" :to="{ name: 'dashboard' }"></v-list-item>
       <v-list-item link prepend-icon="mdi-clock-outline" title="Time Tracker" :to="{ name: 'time-tracker' }"></v-list-item>
+      <v-list-item link prepend-icon="mdi-calendar-multiselect" title="Calendar" :to="{ name: 'calendar' }"></v-list-item>
       <v-list-item link prepend-icon="mdi-cog-outline" title="Settings" :to="{ name: 'settings' }"></v-list-item>
     </v-list>
   </v-navigation-drawer>
