@@ -45,6 +45,7 @@
           @mouseleave="cancelDrag"
           @mousemove:time="mouseMove"
           @mouseup:time="endDrag"
+           :weekdays="[1, 2, 3, 4, 5, 6, 0]"
         >
           <template v-slot:event="{ event, timed }">
             <div class="v-event-draggable">
