@@ -1,7 +1,8 @@
 <template>
   <v-row class="fill-height">
-    <v-col><v-btn color="primary">Add Event</v-btn></v-col>
-    <v-col >
+    <v-col ><v-btn color="primary">Add Event</v-btn></v-col>
+    <v-spacer></v-spacer>
+    <v-col cols="3">
       <v-menu
         v-model="menu"
         :close-on-content-click="false"
