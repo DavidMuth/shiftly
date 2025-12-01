@@ -12,7 +12,7 @@
         <template #activator="{ props }">
           <v-text-field
             v-model="selectedDate"
-            label="Datum wählen"
+            label="Select Date"
             readonly
             v-bind="props"
             style="margin-bottom: 1em;"
@@ -26,8 +26,6 @@
           @update:model-value="menu = false"
         ></v-date-picker>
       </v-menu>
-
-
     </v-col>
   </v-row>
   <v-sheet height="600">
@@ -93,7 +91,7 @@ const createStart = ref<number | null>(null)
 const extendOriginal = ref<number | null>(null)
 
 // Drag starten
-function startDrag(_e: Event, { event, timed }: { event: any; timed: boolean }) {
+const startDrag = (_e: Event, { event, timed }: { event: any; timed: boolean }) => {
   if (event && timed) {
     dragEvent.value = event
     dragTime.value = null
@@ -102,7 +100,7 @@ function startDrag(_e: Event, { event, timed }: { event: any; timed: boolean }) 
 }
 
 // Drag oder neue Event-Erstellung starten
-function startTime(_e: Event, tms: Tms) {
+const startTime = (_e: Event, tms: Tms) => {
   const mouse = toTime(tms)
 
   if (dragEvent.value && dragTime.value === null) {
@@ -121,14 +119,14 @@ function startTime(_e: Event, tms: Tms) {
 }
 
 // Event verlängern
-function extendBottom(event: any) {
+const extendBottom = (event: any) => {
   createEvent.value = event
   createStart.value = event.start
   extendOriginal.value = event.end
 }
 
 // Mouse-Move Event
-function mouseMove(_e: Event, tms: Tms) {
+const mouseMove = (_e: Event, tms: Tms) => {
   const mouse = toTime(tms)
 
   if (dragEvent.value && dragTime.value !== null) {
@@ -144,7 +142,7 @@ function mouseMove(_e: Event, tms: Tms) {
 }
 
 // Drag/Erstellung beenden
-function endDrag() {
+const endDrag = () => {
   dragEvent.value = null
   dragTime.value = null
   createEvent.value = null
@@ -153,7 +151,7 @@ function endDrag() {
 }
 
 // Drag/Erstellung abbrechen
-function cancelDrag() {
+const cancelDrag = () => {
   if (createEvent.value) {
     if (extendOriginal.value !== null) {
       createEvent.value.end = extendOriginal.value
@@ -170,18 +168,18 @@ function cancelDrag() {
 }
 
 // Rundung auf 15 Minuten
-function roundTime(time: number, down = true): number {
+const roundTime = (time: number, down = true): number => {
   const roundTo = 15 * 60 * 1000
   return down ? time - (time % roundTo) : time + (roundTo - (time % roundTo))
 }
 
 // Tms → Timestamp
-function toTime(tms: Tms): number {
+const toTime = (tms: Tms): number => {
   return new Date(tms.year, tms.month - 1, tms.day, tms.hour, tms.minute).getTime()
 }
 
 // Event-Farbe
-function getEventColor(event: any): string {
+const getEventColor = (event: any): string => {
   const rgb = parseInt(event.color.slice(1), 16)
   const r = (rgb >> 16) & 0xff
   const g = (rgb >> 8) & 0xff
@@ -193,7 +191,7 @@ function getEventColor(event: any): string {
 }
 
 // Zufällige Events generieren
-function getEvents({ start, end }: { start: { date: string }; end: { date: string } }) {
+const getEvents = ({ start, end }: { start: { date: string }; end: { date: string } }) => {
   const newEvents: any[] = []
   const min = new Date(`${start.date}T00:00:00`).getTime()
   const max = new Date(`${end.date}T23:59:59`).getTime()
@@ -218,30 +216,31 @@ function getEvents({ start, end }: { start: { date: string }; end: { date: strin
 }
 
 // Zufallszahl
-function rnd(a: number, b: number): number {
+const rnd = (a: number, b: number): number => {
   return Math.floor(Math.random() * (b - a + 1)) + a
 }
 
 // Zufälliges Array-Element
-function rndElement<T>(arr: T[]): T {
+const rndElement = <T>(arr: T[]): T => {
   if (arr.length === 0) throw new Error('Array cannot be empty')
   const index = Math.floor(Math.random() * arr.length)
   return arr[index]!
 }
 
 // Hilfsfunktion: Liefert nur den Tag
-function getDay(input: Date | number, padZero = false): string {
+const getDay = (input: Date | number, padZero = false): string => {
   const date = input instanceof Date ? input : new Date(input)
   const day = date.getDate()
   return padZero ? String(day).padStart(2, '0') : String(day)
 }
 
 // Formatter für Textfeld: nur Tag
-function formatDay(date: string | Date): string {
+const formatDay = (date: string | Date): string => {
   const d = typeof date === 'string' ? new Date(date) : date
   return String(d.getDate()).padStart(2, '0')
 }
 </script>
+
 
 <style scoped>
 .v-event-draggable {
