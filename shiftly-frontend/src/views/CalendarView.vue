@@ -1,7 +1,7 @@
 <template>
   <v-row class="fill-height">
     <v-col><v-btn color="primary">Add Event</v-btn></v-col>
-    <v-col>
+    <v-col >
       <v-menu
         v-model="menu"
         :close-on-content-click="false"
@@ -11,11 +11,10 @@
       >
         <template #activator="{ props }">
           <v-text-field
-            v-model="selectedDate"
+            v-model="weekRange"
             label="Select Date"
             readonly
             v-bind="props"
-            style="margin-bottom: 1em;"
             :formatter="formatDay"
           ></v-text-field>
         </template>
@@ -60,7 +59,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { VCalendar } from 'vuetify/labs/VCalendar'
 import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
 
@@ -239,6 +238,27 @@ const formatDay = (date: string | Date): string => {
   const d = typeof date === 'string' ? new Date(date) : date
   return String(d.getDate()).padStart(2, '0')
 }
+
+// Berechnet automatisch Montag - Sonntag der Woche
+const weekRange = computed(() => {
+  if (!selectedDate.value) return '';
+
+  const date = new Date(selectedDate.value);
+  const day = date.getDay(); // 0 = Sonntag, 1 = Montag ...
+
+  // Montag berechnen
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + (day === 0 ? -6 : 1 - day));
+
+  // Sonntag berechnen
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  // Formatierung YYYY-MM-DD
+  const format = (d: Date)  => d.toISOString().substring(0, 10);
+
+  return `${format(monday)} — ${format(sunday)}`;;
+});
 </script>
 
 
