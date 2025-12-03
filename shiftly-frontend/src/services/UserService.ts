@@ -9,7 +9,7 @@ class UserService extends BaseApi<
     UpdateUserDTO   // update() expects UpdateUserDTO
 > {
     constructor() {
-        super("/api/user");
+        super("/api/shiftly/user");
     }
 
     getProfile() {
