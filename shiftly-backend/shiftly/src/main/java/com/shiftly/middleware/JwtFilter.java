@@ -19,6 +19,12 @@ public class JwtFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        // Allow OPTIONS requests to pass through without JWT validation
+        if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String token = httpRequest.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
