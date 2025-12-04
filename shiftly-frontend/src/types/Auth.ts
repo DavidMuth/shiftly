@@ -13,3 +13,15 @@ export interface User {
   username: string
   email: string
 }
+
+export interface Signup {
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+export interface SignupResponse {
+  success: boolean
+  error?: string
+}

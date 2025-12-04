@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { User, LoginCredentials } from '@/types/Auth';
+import type { User, LoginCredentials, Signup, SignupResponse } from '@/types/Auth';
 import AuthService from '@/services/AuthService';
 
 // Cookie synchron auslesen
@@ -40,6 +40,13 @@ export const useAuthStore = defineStore('Auth', {
         console.error('Login failed:', error);
         return false;
       }
+    },
+
+
+    async signUp(req: Signup): Promise<SignupResponse> {
+        const response = await AuthService.signup(req);
+        console.log("response:", response)
+        return response
     },
 
     logout(): void {
