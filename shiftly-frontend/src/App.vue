@@ -4,16 +4,15 @@ import NavBar from './components/NavBar.vue'
 import { useTheme } from 'vuetify'
 import logo from '@/assets/logo.svg'
 import { onMounted, ref, computed } from 'vue'
-import UserService from './services/UserService'
-import type { User } from './types/User'
+import { useUserStore } from '@/stores/User'
 import { useAuthStore } from '@/stores/Auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const error = ref('')
 const theme = useTheme()
 const route = useRoute()
-const users = ref<User>()
 const loading = ref(true)
 
 // HIDE LAYOUT ON LOGIN ROUTE
@@ -35,8 +34,8 @@ const handleLogout = async (): Promise<void> => {
 
 onMounted(async () => {
   try {
-    const { data } = await UserService.get(6)
-    console.log(data)
+    await userStore.getCurrentUser()
+    console.log("Aktueller User:", userStore.getUser)
   } finally {
     loading.value = false
   }
@@ -51,7 +50,7 @@ onMounted(async () => {
       <v-img :src="logo" :max-width="150" :max-height="400" />
       <v-spacer></v-spacer>
 
-      
+
       <v-btn @click="toggleTheme">
         Toggle {{ theme.name.value === 'light' ? 'Dark' : 'Light' }} Mode
       </v-btn>
@@ -62,7 +61,7 @@ onMounted(async () => {
         Logout
       </v-btn>
 
-     
+
     </v-app-bar>
 
     <!-- SIDEBAR -> deaktiviert bei Login -->
