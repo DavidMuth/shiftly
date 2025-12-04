@@ -4,42 +4,59 @@
       <v-col cols="12">
 
         <!-- LOGIN CARD -->
-        <v-card elevation="3" class="pa-6 rounded-lg">
+        <div>
+
+          <v-img src="/logo.png" height="160"></v-img>
+
           <h1 class="text-h4 font-weight-bold mb-2">Login</h1>
           <p class="text-body-2 mb-6">
             Login with the data you entered during your registration.
           </p>
 
-          <!-- Username -->
+          <!-- Email -->
           <v-text-field
+            @prevent.default
             v-model="credentials.email"
-            label="Username"
+            label="Email"
             variant="outlined"
             density="comfortable"
             rounded="lg"
+            @keyup.enter="handleLogin"
+
           />
 
           <!-- Password -->
           <v-text-field
+            @prevent.default
             v-model="credentials.password"
             label="Password"
             type="password"
             variant="outlined"
             density="comfortable"
             rounded="lg"
+            @keyup.enter="handleLogin"
           />
 
           <!-- Login Button -->
           <v-btn
-            color="blue-darken-3"
+            color="blue-darken-2"
             class="mt-4"
             size="large"
             block
             @click="handleLogin"
+            @keyup.enter="handleLogin"
+            :loading="loading"
           >
-            Log in
+            <v-progress-circular
+              v-if="loading"
+              indeterminate
+              size="20"
+              width="2"
+              class="mr-2"
+            ></v-progress-circular>
+            {{ loading ? "Logging in..." : "Log in"}}
           </v-btn>
-        </v-card>
+        </div>
 
         <!-- SIGN UP BOX -->
         <v-card elevation="0" class="pa-6 mt-6 rounded-lg text-center">
@@ -88,7 +105,7 @@ const handleLogin = async (): Promise<void> => {
     const success = await authStore.login(credentials)
 
     if (success) {
-      const redirect = route.query.redirect as string || '/dashboard'
+      const redirect = route.query.redirect as string || '/'
       router.push(redirect)
     } else {
       error.value = 'Invalid username or password'
@@ -99,6 +116,14 @@ const handleLogin = async (): Promise<void> => {
   } finally {
     loading.value = false
   }
+}
+
+const handleLogout = async (): Promise<void> => {
+  loading.value = true
+  error.value = ''
+  await authStore.logout()
+
+  router.push("/login")
 }
 
 const goToSignup = (): void => {

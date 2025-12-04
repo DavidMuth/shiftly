@@ -1,12 +1,12 @@
-// src/services/AuthService.ts
-import type { LoginCredentials } from "@/types/Auth";
+import type { LoginCredentials, LoginResponse } from "@/types/Auth";
 import apiClient from "@/utils/ApiAxios";
 
 class AuthService {
   private resource = "/api/signin";
 
   signin(credentials: LoginCredentials) {
-    return apiClient.post(this.resource, credentials);
+
+    return apiClient.post<LoginResponse>(this.resource, credentials);
   }
 }
 

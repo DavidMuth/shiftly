@@ -1,44 +1,48 @@
-import { defineStore } from 'pinia'
-import type { User, LoginCredentials, LoginResponse } from '@/types/Auth'
-import AuthService from '@/services/AuthService'
+import { defineStore } from 'pinia';
+import type { LoginCredentials } from '@/types/Auth';
+import AuthService from '@/services/AuthService';
+import { useUserStore } from '@/stores/User';
 
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  if (match && match[2]) return decodeURIComponent(match[2]);
+  return null;
+}
 
 interface AuthState {
-  token: string | null
-  user: User | null
+  token: string | null;
 }
 
 export const useAuthStore = defineStore('Auth', {
   state: (): AuthState => ({
-    token: localStorage.getItem('token') || null,
-    user: null
+    token: getCookie('token'),
   }),
 
   getters: {
     isAuthenticated: (state): boolean => !!state.token,
-    getUser: (state): User | null => state.user
   },
 
   actions: {
     async login(credentials: LoginCredentials): Promise<boolean> {
       try {
-        const response = await AuthService.signin(credentials) as unknown as LoginResponse
-        console.log('Login response:', response)
-        this.token = response.data.jwtToken
-
-        localStorage.setItem('token', this.token)
-
-        return true
+        const response = await AuthService.signin(credentials);
+        const token = response.data.jwtToken;
+        this.token = token;
+        document.cookie = `token=${token}; path=/;`;
+        const userStore = useUserStore();
+        await userStore.getCurrentUser();
+        return true;
       } catch (error) {
-        console.error('Login failed:', error)
-        return false
+        console.error('Login failed:', error);
+        return false;
       }
     },
 
     logout(): void {
-      this.token = null
-      this.user = null
-      localStorage.removeItem('token')
+      this.token = null;
+      const userStore = useUserStore();
+      userStore.clearUser();
+      document.cookie = 'token=; Max-Age=0; path=/;';
     },
   }
-})
+});
