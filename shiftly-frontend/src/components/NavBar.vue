@@ -6,15 +6,16 @@
     app
     color="primary"
   >
-    <!-- User Info -->
     <v-list>
       <v-list-item
-        subtitle="sandra_a88@gmail.com"
-        title="Sandra Adams"
+        :subtitle="user?.email || ''"
+        :title="cleanName"
       >
         <template v-slot:prepend>
           <v-avatar color="secondary">
-            <span style="font-size: large;">SA</span>
+            <span style="font-size: large;">
+              {{ initials }}
+            </span>
           </v-avatar>
         </template>
       </v-list-item>
@@ -22,7 +23,6 @@
 
     <v-divider></v-divider>
 
-    <!-- Navigation -->
     <v-list density="compact" nav>
       <v-list-item link prepend-icon="mdi-home" title="Dashboard" :to="{ name: 'dashboard' }"></v-list-item>
       <v-list-item link prepend-icon="mdi-clock-outline" title="Time Tracker" :to="{ name: 'time-tracker' }"></v-list-item>
@@ -33,5 +33,24 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useUserStore } from '@/stores/User'
 
+const userStore = useUserStore()
+const user = computed(() => userStore.getUser)
+
+// Name ohne Ziffern am Ende, z. B. "John Doe5" → "John Doe"
+const cleanName = computed(() => {
+  if (!user.value?.name) return ''
+  return user.value.name.replace(/[0-9]+$/, '')
+})
+
+// Initialen erzeugen, z. B. "John Doe" → "JD"
+const initials = computed(() => {
+  if (!cleanName.value) return ''
+  return cleanName.value
+    .split(' ')
+    .map(n => n[0]?.toUpperCase())
+    .join('')
+})
 </script>
