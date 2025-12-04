@@ -6,7 +6,7 @@ interface UserState {
   user: User | null;
 }
 
-export const useUserStore = defineStore('user', {
+export const useUserStore = defineStore('User', {
   state: (): UserState => ({
     user: null,
   }),
