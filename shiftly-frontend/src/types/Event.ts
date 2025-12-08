@@ -7,8 +7,11 @@ export interface EventResponse {
     break: boolean
 }
 
-export interface FrontEndEvent  extends EventResponse {
-  start: string
-  end: string
-  color?: string
+export interface FrontEndEvent extends EventResponse {
+  start: number         // für Vuetify & dragging
+  end: number
+  startText: string     // Anzeige
+  endText: string
+  timed: true
+  color: string
 }

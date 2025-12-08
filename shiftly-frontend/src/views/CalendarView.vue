@@ -58,11 +58,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed , onMounted} from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { VCalendar } from 'vuetify/labs/VCalendar'
 import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
 import { useEventStore } from '@/stores/Event'
-import type { EventResponse , FrontEndEvent } from '@/types/Event';
+import type { EventResponse, FrontEndEvent } from '@/types/Event';
+
 
 const eventStore = useEventStore()
 
@@ -88,19 +89,39 @@ interface Tms {
 const selectedDate = ref(new Date().toISOString().substring(0, 10))
 const menu = ref(false)
 
-// Events
-const events = computed<FrontEndEvent[]>(() => {
-  const eventsResponse = eventStore.getEvents as EventResponse[] | undefined
-  if (!eventsResponse) return []
+// Backend bleibt unverändert, bis du die Änderungen explizit zurückspeicherst.
+const calendarEvents = ref<FrontEndEvent[]>([])
 
-  return eventsResponse.map(e => ({
-    ...e,
-    start: formatDate(e.startTimestamp),
-    end: formatDate(e.endTimestamp),
-    color: e.break ? "green" : "orange"
+const mapBackendToCalendar = (backend: EventResponse[]): FrontEndEvent[] => {
+  return backend.map(e => {
+    const start = new Date(e.startTimestamp).getTime()
+    const end = new Date(e.endTimestamp).getTime()
+    return {
+      ...e,
+      start,
+      end,
+      startText: formatDate(e.startTimestamp),
+      endText: formatDate(e.endTimestamp),
+      timed: true,
+      color: e.break ? 'green' : 'orange',
+    } as FrontEndEvent
+  })
+}
 
-  }))
-})
+watch(
+  () => eventStore.getEvents,
+  (val) => {
+    const backend = val as EventResponse[] | undefined
+
+    // Mappe die Backend-Events in FrontEndEvents für den Kalender
+    // Wenn keine Events vorhanden → leeres Array
+    calendarEvents.value = backend ? mapBackendToCalendar(backend) : []
+  },
+  { immediate: true, deep: true }
+)
+
+// Vorteil: Du kannst noch Filter, Sortierung oder Mapping einfügen, bevor die Events im Template landen.
+const events = calendarEvents
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -110,22 +131,35 @@ function formatDate(iso: string): string {
        + `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-// Farben & Namen für Zufallsevents
-const colors = ['#2196F3', '#3F51B5', '#673AB7', '#00BCD4', '#4CAF50', '#FF9800', '#757575']
-const names = ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party']
-
-// Drag & Create
-const dragEvent = ref<any | null>(null)
+const dragEvent = ref<FrontEndEvent | null>(null)
 const dragTime = ref<number | null>(null)
-const createEvent = ref<any | null>(null)
+const createEvent = ref<FrontEndEvent | null>(null)
 const createStart = ref<number | null>(null)
 const extendOriginal = ref<number | null>(null)
 
+// findet das "echte" Event-Objekt im Calendar-Array
+const findCalendarEvent = (maybeEvent: FrontEndEvent): FrontEndEvent | undefined => {
+  if (!maybeEvent) return undefined
+  //Bevorzugt: Suche nach eventId
+  if (maybeEvent.eventId != null) {
+    return calendarEvents.value.find(e => e.eventId === maybeEvent.eventId)
+  }
+  // fallback: Suche nach Kombination aus Start, End und Name -> falls kein ID vorhanden ist
+  return calendarEvents.value.find(e => e.start === maybeEvent.start && e.end === maybeEvent.end && e.name === maybeEvent.name)
+}
+
 // Drag starten
 const startDrag = (_e: Event, { event, timed }: { event: any; timed: boolean }) => {
-  if (event && timed) {
-    dragEvent.value = event
+    // Hole die "echte" Referenz des Events aus dem Kalender
+    // Vuetify rendert Events möglicherweise als neue Objekte → stabile Referenz nötig
+  const ev = findCalendarEvent(event)
+ // Nur Events mit Zeit (timed) können gezogen werden
+  if (ev && timed) {
+    // Markiere das Event als aktuell gezogenen Event
+    dragEvent.value = ev
+    // Setze Offset noch nicht → wird beim ersten Mouse-Move berechnet
     dragTime.value = null
+    // Alte Endzeit merken, falls Drag abgebrochen wird
     extendOriginal.value = null
   }
 }
@@ -133,30 +167,42 @@ const startDrag = (_e: Event, { event, timed }: { event: any; timed: boolean }) 
 // Drag oder neue Event-Erstellung starten
 const startTime = (_e: Event, tms: Tms) => {
   const mouse = toTime(tms)
-
+//Wenn ein bestehendes Event gerade gezogen wird
   if (dragEvent.value && dragTime.value === null) {
-    dragTime.value = mouse - dragEvent.value.start
+    // Berechne Offset zwischen Maus und Event-Start
+    // Damit das Event beim Drag unter der Maus bleibt
+    dragTime.value = mouse - (dragEvent.value.start as number)
   } else {
     createStart.value = roundTime(mouse)
-    createEvent.value = {
-      name: `Event #${events.value.length}`,
-      color: rndElement(colors),
+    const newEv: FrontEndEvent = {
+      // Temporäre negative ID, bis Backend eine echte vergibt
+      eventId: Math.floor(Math.random() * -1000000),
+      name: `Event #${calendarEvents.value.length + 1}`,
+      description: '',
       start: createStart.value,
       end: createStart.value,
+      startText: formatDate(new Date(createStart.value!).toISOString()),
+      endText: formatDate(new Date(createStart.value!).toISOString()),
       timed: true,
-    }
-    events.value.push(createEvent.value)
+      break: false,
+      color: 'orange',
+    } as FrontEndEvent
+
+    createEvent.value = newEv
+    calendarEvents.value.push(newEv)
   }
 }
 
-// Event verlängern
+// Event verlängern (resize bottom)
 const extendBottom = (event: any) => {
-  createEvent.value = event
-  createStart.value = event.start
-  extendOriginal.value = event.end
+  const ev = findCalendarEvent(event)
+  if (!ev) return
+  createEvent.value = ev
+  createStart.value = ev.start
+  extendOriginal.value = ev.end
 }
 
-// Mouse-Move Event
+// Mouse-Move Event -> Diese Funktion wird jedes Mal ausgeführt, wenn die Maus sich innerhalb des Kalenders bewegt während du ein Event ziehst oder neu erstellst.
 const mouseMove = (_e: Event, tms: Tms) => {
   const mouse = toTime(tms)
 
@@ -169,11 +215,15 @@ const mouseMove = (_e: Event, tms: Tms) => {
     const mouseRounded = roundTime(mouse, false)
     createEvent.value.start = Math.min(mouseRounded, createStart.value)
     createEvent.value.end = Math.max(mouseRounded, createStart.value)
+
+    // update display text optionally
+    createEvent.value.startText = new Date(createEvent.value.start).toISOString()
+    createEvent.value.endText = new Date(createEvent.value.end).toISOString()
   }
 }
 
 // Drag/Erstellung beenden
-const endDrag = () => {
+const endDrag = async () => {
   dragEvent.value = null
   dragTime.value = null
   createEvent.value = null
@@ -181,14 +231,14 @@ const endDrag = () => {
   extendOriginal.value = null
 }
 
-// Drag/Erstellung abbrechen
+// Drag/Erstellung abbrechen -> wird von Vuetify automatisch aufgerufen, und zwar immer dann, wenn du die Maus aus dem <v-calendar>-Bereich herausbewegst
 const cancelDrag = () => {
   if (createEvent.value) {
     if (extendOriginal.value !== null) {
       createEvent.value.end = extendOriginal.value
     } else {
-      const i = events.value.indexOf(createEvent.value)
-      if (i !== -1) events.value.splice(i, 1)
+      const i = calendarEvents.value.indexOf(createEvent.value)
+      if (i !== -1) calendarEvents.value.splice(i, 1)
     }
   }
   dragEvent.value = null
@@ -209,28 +259,9 @@ const toTime = (tms: Tms): number => {
   return new Date(tms.year, tms.month - 1, tms.day, tms.hour, tms.minute).getTime()
 }
 
-// Event-Farbe
-const getEventColor = (event: any): string => {
-  const rgb = parseInt(event.color.slice(1), 16)
-  const r = (rgb >> 16) & 0xff
-  const g = (rgb >> 8) & 0xff
-  const b = rgb & 0xff
-
-  return event === dragEvent.value || event === createEvent.value
-    ? `rgba(${r},${g},${b},0.7)`
-    : event.color
-}
-
-// Zufälliges Array-Element
-const rndElement = <T>(arr: T[]): T => {
-  if (arr.length === 0) throw new Error('Array cannot be empty')
-  const index = Math.floor(Math.random() * arr.length)
-  return arr[index]!
-}
-
 // Hilfsfunktion: Liefert nur den Tag
 const getDay = (input: Date | number, padZero = false): string => {
-  const date = input instanceof Date ? input : new Date(input)
+  const date = typeof input === 'number' ? new Date(input) : (input instanceof Date ? input : new Date(input))
   const day = date.getDate()
   return padZero ? String(day).padStart(2, '0') : String(day)
 }
@@ -259,9 +290,10 @@ const weekRange = computed(() => {
   // Formatierung YYYY-MM-DD
   const format = (d: Date)  => d.toISOString().substring(0, 10);
 
-  return `${format(monday)} — ${format(sunday)}`;;
+  return `${format(monday)} — ${format(sunday)}`;
 });
 </script>
+
 
 
 <style scoped>
