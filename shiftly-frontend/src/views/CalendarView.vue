@@ -19,7 +19,6 @@
             :formatter="formatDay"
           ></v-text-field>
         </template>
-
         <v-date-picker
           v-model="selectedDate"
           :first-day-of-week="1"
@@ -63,19 +62,27 @@ import { VCalendar } from 'vuetify/labs/VCalendar'
 import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
 import { useEventStore } from '@/stores/Event'
 import type { EventResponse, FrontEndEvent } from '@/types/Event';
+import { useUserStore } from '@/stores/User'
 
-
+const userStore = useUserStore()
 const eventStore = useEventStore()
 
 const loadEvents = async (userId: number) => {
   await eventStore.getEventsFromUser(userId)
 }
 
-// Beispiel: UserId aus Auth / props
-const userId = 6 // <- hier ggf. dynamisch setzen
+const user = computed(() => userStore.getUser)
 onMounted(() => {
-  loadEvents(userId)
+  if (user.value?.id) {
+    loadEvents(user.value.id)}
 })
+
+// Lade Events neu, wenn sich der User ändert
+watch(
+  () => user.value,
+  (u) => { if (u?.id) loadEvents(u.id) },
+  { immediate: true }
+)
 
 interface Tms {
   year: number
@@ -120,7 +127,7 @@ watch(
   { immediate: true, deep: true }
 )
 
-// Vorteil: Du kannst noch Filter, Sortierung oder Mapping einfügen, bevor die Events im Template landen.
+// Vorteil: Man kann noch Filter, Sortierung oder Mapping einfügen, bevor die Events im Template landen.
 const events = calendarEvents
 
 function formatDate(iso: string): string {
@@ -216,7 +223,6 @@ const mouseMove = (_e: Event, tms: Tms) => {
     createEvent.value.start = Math.min(mouseRounded, createStart.value)
     createEvent.value.end = Math.max(mouseRounded, createStart.value)
 
-    // update display text optionally
     createEvent.value.startText = new Date(createEvent.value.start).toISOString()
     createEvent.value.endText = new Date(createEvent.value.end).toISOString()
   }
