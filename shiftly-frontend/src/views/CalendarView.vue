@@ -32,12 +32,10 @@
         <v-calendar
           ref="calendar"
           v-model="selectedDate"
-          :event-color="getEventColor"
           :event-ripple="false"
           :events="events"
           color="primary"
           type="week"
-          @change="getEvents"
           @mousedown:event="startDrag"
           @mousedown:time="startTime"
           @mouseleave="cancelDrag"
@@ -60,9 +58,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed , onMounted} from 'vue'
 import { VCalendar } from 'vuetify/labs/VCalendar'
 import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
+import { useEventStore } from '@/stores/Event'
+import type { EventResponse , FrontEndEvent } from '@/types/Event';
+
+const eventStore = useEventStore()
+
+const loadEvents = async (userId: number) => {
+  await eventStore.getEventsFromUser(userId)
+}
+
+// Beispiel: UserId aus Auth / props
+const userId = 6 // <- hier ggf. dynamisch setzen
+onMounted(() => {
+  loadEvents(userId)
+})
 
 interface Tms {
   year: number
@@ -77,7 +89,26 @@ const selectedDate = ref(new Date().toISOString().substring(0, 10))
 const menu = ref(false)
 
 // Events
-const events = ref<any[]>([])
+const events = computed<FrontEndEvent[]>(() => {
+  const eventsResponse = eventStore.getEvents as EventResponse[] | undefined
+  if (!eventsResponse) return []
+
+  return eventsResponse.map(e => ({
+    ...e,
+    start: formatDate(e.startTimestamp),
+    end: formatDate(e.endTimestamp),
+    color: e.break ? "green" : "orange"
+
+  }))
+})
+
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, "0")
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} `
+       + `${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 // Farben & Namen für Zufallsevents
 const colors = ['#2196F3', '#3F51B5', '#673AB7', '#00BCD4', '#4CAF50', '#FF9800', '#757575']
@@ -188,36 +219,6 @@ const getEventColor = (event: any): string => {
   return event === dragEvent.value || event === createEvent.value
     ? `rgba(${r},${g},${b},0.7)`
     : event.color
-}
-
-// Zufällige Events generieren
-const getEvents = ({ start, end }: { start: { date: string }; end: { date: string } }) => {
-  const newEvents: any[] = []
-  const min = new Date(`${start.date}T00:00:00`).getTime()
-  const max = new Date(`${end.date}T23:59:59`).getTime()
-  const days = (max - min) / 86400000
-  const eventCount = rnd(days, days + 20)
-
-  for (let i = 0; i < eventCount; i++) {
-    const timed = rnd(0, 3) !== 0
-    const firstTimestamp = rnd(min, max)
-    const duration = rnd(2, timed ? 8 : 288) * 900000
-    const startTime = firstTimestamp - (firstTimestamp % 900000)
-    newEvents.push({
-      name: rndElement(names),
-      color: rndElement(colors),
-      start: startTime,
-      end: startTime + duration,
-      timed,
-    })
-  }
-
-  events.value = newEvents
-}
-
-// Zufallszahl
-const rnd = (a: number, b: number): number => {
-  return Math.floor(Math.random() * (b - a + 1)) + a
 }
 
 // Zufälliges Array-Element
