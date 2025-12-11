@@ -1,0 +1,17 @@
+export interface EventResponse {
+    eventId: number;
+    name: string;
+    description: string;
+    startTimestamp: string;
+    endTimestamp: string;
+    break: boolean
+}
+
+export interface FrontEndEvent extends EventResponse {
+  start: number         // für Vuetify & dragging
+  end: number
+  startText: string     // Anzeige
+  endText: string
+  timed: true
+  color: string
+}

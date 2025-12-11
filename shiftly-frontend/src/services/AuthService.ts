@@ -5,6 +5,7 @@ class AuthService {
   private resource = "/api/signin";
 
   signin(credentials: LoginCredentials) {
+
     return apiClient.post<LoginResponse>(this.resource, credentials);
   }
 

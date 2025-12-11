@@ -22,7 +22,7 @@
             density="comfortable"
             rounded="lg"
             @keyup.enter="handleLogin"
-            
+
           />
 
           <!-- Password -->
@@ -105,7 +105,7 @@ const handleLogin = async (): Promise<void> => {
     const success = await authStore.login(credentials)
 
     if (success) {
-      const redirect = route.query.redirect as string || '/dashboard'
+      const redirect = route.query.redirect as string || '/'
       router.push(redirect)
     } else {
       error.value = 'Invalid username or password'

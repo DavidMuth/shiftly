@@ -2,6 +2,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import TimeTrackerView from '@/views/TimeTrackerView.vue'
 import LoginView from '@/views/LoginView.vue'
+import CalendarView from '@/views/CalendarView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/Auth'
 import SignupView from '@/views/SignupView.vue'
@@ -36,6 +37,12 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: SettingsView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
+      component: CalendarView,
       meta: { requiresAuth: true }
     },
   ],
