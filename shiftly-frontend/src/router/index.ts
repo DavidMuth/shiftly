@@ -5,6 +5,7 @@ import LoginView from '@/views/LoginView.vue'
 import CalendarView from '@/views/CalendarView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/Auth'
+import SignupView from '@/views/SignupView.vue'
 // import SignupView from '@/views/Signup.vue'     // optional falls du willst
 
 const router = createRouter({
@@ -15,11 +16,11 @@ const router = createRouter({
       name: 'login',
       component: LoginView
     },
-    // {
-    //   path: '/signup',
-    //   name: 'signup',
-    //   component: SignupView
-    // },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: SignupView
+    },
     {
       path: '/',
       name: 'dashboard',
