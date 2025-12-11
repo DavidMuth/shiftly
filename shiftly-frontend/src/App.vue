@@ -15,8 +15,8 @@ const theme = useTheme()
 const route = useRoute()
 const loading = ref(true)
 
-// HIDE LAYOUT ON LOGIN ROUTE
-const hideLayout = computed(() => route.path === "/login")
+// HIDE LAYOUT ON LOGIN or SIGNUP route
+const hideLayout = computed(() => route.path === "/login" || route.path === "/signup")
 
 function toggleTheme() {
   if (theme.name.value === 'dark') theme.change('light')
