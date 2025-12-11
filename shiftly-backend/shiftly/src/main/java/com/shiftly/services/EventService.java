@@ -35,7 +35,7 @@ public class EventService {
     }
 
     @Transactional
-    public boolean createEvent(CreateEventRequest request, int userId) {
+    public boolean createEvent(CreateEventRequest request) {
         // create event
         Event event = new Event();
         event.setName(request.getName());
@@ -43,8 +43,9 @@ public class EventService {
         event.setDescription(request.getDescription());
         event.setStartTimestamp(request.getStartTimestamp());
         event.setEndTimestamp(request.getEndTimestamp());
+        event.setUserId(request.getUserId());
 
-        return eventRepository.create(event, userId);
+        return eventRepository.create(event);
     }
 
 }

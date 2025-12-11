@@ -31,12 +31,12 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventsFromUser(userId));
     }
 
-    @PostMapping("/create/{userId}")
-    public ResponseEntity<Boolean> createEvent(@PathVariable int userId,@RequestBody CreateEventRequest eventRequest) {
-        if (userId == 0) {
+    @PostMapping("/create")
+    public ResponseEntity<Boolean> createEvent(@RequestBody CreateEventRequest eventRequest) {
+        if (eventRequest.getUserId() == 0) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return ResponseEntity.ok(eventService.createEvent(eventRequest, userId));
+        return ResponseEntity.ok(eventService.createEvent(eventRequest));
     }
 }

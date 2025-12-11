@@ -8,6 +8,13 @@ public class CreateEventRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
+    public int getUserId() {
+        return userId;
+    }
+
+    @NotBlank(message = "User ID is required.")
+    private int userId;
+
     private String description;
 
     @NotBlank(message = "Start Timestamp is required")

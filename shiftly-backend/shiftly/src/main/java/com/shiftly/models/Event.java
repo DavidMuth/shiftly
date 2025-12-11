@@ -60,14 +60,25 @@ public class Event {
 
     private boolean isBreak;
 
+    public int getUserId() {
+        return userId;
+    }
 
-    public Event(int id, String name, String description, Timestamp startTimestamp, Timestamp endTimestamp, boolean isBreak) {
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    private int userId;
+
+
+    public Event(int userId,int id, String name, String description, Timestamp startTimestamp, Timestamp endTimestamp, boolean isBreak) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.startTimestamp = startTimestamp;
         this.endTimestamp = endTimestamp;
         this.isBreak = isBreak;
+        this.userId = userId;
     }
 
     public Event(){
