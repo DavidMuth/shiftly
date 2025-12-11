@@ -69,4 +69,8 @@ public class Event {
         this.endTimestamp = endTimestamp;
         this.isBreak = isBreak;
     }
+
+    public Event(){
+
+    }
 }

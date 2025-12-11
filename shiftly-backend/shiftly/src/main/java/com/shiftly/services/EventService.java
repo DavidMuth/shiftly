@@ -1,11 +1,16 @@
 package com.shiftly.services;
 
+import com.shiftly.dto.CreateEventRequest;
+import com.shiftly.dto.CreateUserRequest;
 import com.shiftly.dto.EventResponse;
 import com.shiftly.dto.UserResponse;
+import com.shiftly.exceptions.UserAlreadyExistsException;
 import com.shiftly.models.Event;
 import com.shiftly.models.User;
 import com.shiftly.repositories.EventRepository;
+import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +32,19 @@ public class EventService {
         return events.stream()
                 .map(EventResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public boolean createEvent(CreateEventRequest request, int userId) {
+        // create event
+        Event event = new Event();
+        event.setName(request.getName());
+        event.setBreak(request.getIsBreak());
+        event.setDescription(request.getDescription());
+        event.setStartTimestamp(request.getStartTimestamp());
+        event.setEndTimestamp(request.getEndTimestamp());
+
+        return eventRepository.create(event, userId);
     }
 
 }
