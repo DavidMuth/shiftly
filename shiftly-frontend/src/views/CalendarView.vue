@@ -43,7 +43,7 @@
            :weekdays="[1, 2, 3, 4, 5, 6, 0]"
         >
           <template v-slot:event="{ event, timed }">
-            <div class="v-event-draggable" @dblclick.stop="openEditEvent(event)">
+            <div class="v-event-draggable" style="width: 100%; height: 100%;"   @dblclick.stop="openEditEvent(event)">
               <strong>{{ getDay(event.start) }}</strong> - {{ event.name }}
             </div>
             <div
@@ -124,6 +124,7 @@ const openNewEvent = () => {
 
 // EditeriDialog öffnen
 const openEditEvent = (event: FrontEndEvent) => {
+  console.log(event)
   const ev = findCalendarEvent(event)
   if (!ev) return
 
@@ -256,6 +257,9 @@ const startTime = (_e: Event, tms: Tms) => {
 
     createEvent.value = newEv
     calendarEvents.value.push(newEv)
+    // ← Dialog sofort öffnen für das neue Event
+    selectedEvent.value = { ...newEv }
+    dialogOpen.value = true
   }
 }
 
@@ -288,7 +292,15 @@ const mouseMove = (_e: Event, tms: Tms) => {
 }
 
 // Drag/Erstellung beenden
-const endDrag = async () => {
+const endDrag = () => {
+  // Entscheide, welches Event gerade relevant ist
+  const evToEdit = dragEvent.value ?? createEvent.value
+  if (evToEdit) {
+    selectedEvent.value = { ...evToEdit }  // Setze Event für Dialog
+    dialogOpen.value = true                // Dialog öffnen
+  }
+
+  // Drag/Creation Variablen zurücksetzen
   dragEvent.value = null
   dragTime.value = null
   createEvent.value = null
