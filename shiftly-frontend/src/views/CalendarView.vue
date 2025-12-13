@@ -239,7 +239,9 @@ const startTime = (_e: Event, tms: Tms) => {
     // Berechne Offset zwischen Maus und Event-Start
     // Damit das Event beim Drag unter der Maus bleibt
     dragTime.value = mouse - (dragEvent.value.start as number)
-  } else {
+    return
+  }
+  if (!dragEvent.value && !createEvent.value) {
     createStart.value = roundTime(mouse)
     const newEv: FrontEndEvent = {
       // Temporäre negative ID, bis Backend eine echte vergibt
@@ -257,9 +259,6 @@ const startTime = (_e: Event, tms: Tms) => {
 
     createEvent.value = newEv
     calendarEvents.value.push(newEv)
-    // ← Dialog sofort öffnen für das neue Event
-    selectedEvent.value = { ...newEv }
-    dialogOpen.value = true
   }
 }
 
