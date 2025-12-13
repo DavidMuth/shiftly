@@ -1,6 +1,6 @@
 <template>
   <v-row class="fill-height">
-    <v-col ><v-btn color="primary">Add Event</v-btn></v-col>
+    <v-col ><v-btn color="primary" @click="openNewEvent">Add Event</v-btn></v-col>
     <v-spacer></v-spacer>
     <v-col cols="3">
       <v-menu
@@ -43,7 +43,7 @@
            :weekdays="[1, 2, 3, 4, 5, 6, 0]"
         >
           <template v-slot:event="{ event, timed }">
-            <div class="v-event-draggable">
+            <div class="v-event-draggable" @dblclick.stop="openEditEvent(event)">
               <strong>{{ getDay(event.start) }}</strong> - {{ event.name }}
             </div>
             <div
@@ -54,6 +54,12 @@
           </template>
         </v-calendar>
       </v-sheet>
+      <EventDialog
+      v-model="dialogOpen"
+      :event="selectedEvent"
+      @save="onSaveEvent"
+      @delete="onDeleteEvent"
+      />
 </template>
 
 <script lang="ts" setup>
@@ -63,6 +69,7 @@ import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
 import { useEventStore } from '@/stores/Event'
 import type { EventResponse, FrontEndEvent } from '@/types/Event';
 import { useUserStore } from '@/stores/User'
+import EventDialog from '@/components/EventDialog.vue'
 
 const userStore = useUserStore()
 const eventStore = useEventStore()
@@ -91,6 +98,58 @@ interface Tms {
   hour: number
   minute: number
 }
+
+const emptyEvent: FrontEndEvent = {
+  eventId: -1,
+  name: '',
+  description: '',
+  startTimestamp: '',
+  endTimestamp: '',
+  startText: '',
+  endText: '',
+  timed: true,
+  break: false,
+  color: 'orange',
+  start : 0,
+  end: 0,
+}
+
+const dialogOpen = ref(false)
+
+// Event Dialog öffnen
+const openNewEvent = () => {
+  selectedEvent.value = { ...emptyEvent }
+  dialogOpen.value = true
+}
+
+// EditeriDialog öffnen
+const openEditEvent = (event: FrontEndEvent) => {
+  const ev = findCalendarEvent(event)
+  if (!ev) return
+
+  selectedEvent.value = { ...ev }
+  dialogOpen.value = true
+}
+
+// Speichern untersschied zwischen neu und editieren mit Hilfe der ID
+const onSaveEvent = (ev: FrontEndEvent) => {
+  const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
+
+  if (index !== -1) {
+    calendarEvents.value[index] = { ...ev }
+  } else {
+    calendarEvents.value.push(ev)
+  }
+}
+
+const onDeleteEvent = (ev: FrontEndEvent) => {
+  const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
+  if (index !== -1) {
+    calendarEvents.value.splice(index, 1)
+  }
+}
+
+const selectedEvent = ref<FrontEndEvent>({ ...emptyEvent })
 
 // Datum für Calendar & DatePicker
 const selectedDate = ref(new Date().toISOString().substring(0, 10))
