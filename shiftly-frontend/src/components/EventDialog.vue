@@ -180,16 +180,18 @@ const onStartDateChange = (val: string | Date) => {
     return;
   }
 
-  if (val instanceof Date) {
-    startDate.value = val.toISOString().slice(0, 10);
-  } else {
-    startDate.value = val;
-  }
+  // DatePicker liefert STRING → IMMER STRING BEHALTEN
+  startDate.value = typeof val === "string"
+    ? val
+    : `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, "0")}-${String(val.getDate()).padStart(2, "0")}`;
 
-  // Default-Zeit setzen (UX!)
+  // Default-Zeit setzen
   if (!startTime.value) {
     startTime.value = "00:00";
   }
+
+  localEvent.value.startTimestamp =
+    `${startDate.value}T${startTime.value}:00`;
 };
 
 const onEndDateChange = (val: string | Date) => {
@@ -198,16 +200,16 @@ const onEndDateChange = (val: string | Date) => {
     return;
   }
 
-  if (val instanceof Date) {
-    endDate.value = val.toISOString().slice(0, 10);
-  } else {
-    endDate.value = val;
-  }
+  endDate.value = typeof val === "string"
+    ? val
+    : `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, "0")}-${String(val.getDate()).padStart(2, "0")}`;
 
-  // Default-Zeit setzen (UX!)
   if (!endTime.value) {
     endTime.value = "00:00";
   }
+
+  localEvent.value.endTimestamp =
+    `${endDate.value}T${endTime.value}:00`;
 };
 
 // Display formatter

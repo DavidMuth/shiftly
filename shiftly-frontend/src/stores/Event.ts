@@ -31,8 +31,7 @@ export const useEventStore = defineStore('Event', {
         const response =  await EventService.createCalendarEvent(newEvent)
          console.log(response.data);
         if(response.data){
-          //this.getEventsFromUser(newEvent.userId);
-          console.log("Event created successfully");
+          this.getEventsFromUser(newEvent.userId);
         }
         else{
           throw new Error("Event creation failed on server");

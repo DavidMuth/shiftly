@@ -133,14 +133,23 @@ const openEditEvent = (event: FrontEndEvent) => {
   dialogOpen.value = true
 }
 
-// Speichern untersschied zwischen neu und editieren mit Hilfe der ID
+// Speichern unterschied zwischen neu und editieren mit Hilfe der ID -> -1 = neu
 const onSaveEvent = (ev: FrontEndEvent) => {
   const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
 
-  if (index !== -1) {
-    calendarEvents.value[index] = { ...ev }
-  } else {
+  console.log('Saving event:', index, ev)
+  if (index === -1 || ev.eventId < 0) {
+    eventStore.createCalendarEvent({
+      name: ev.name,
+      description: ev.description,
+      startTimestamp: ev.startTimestamp,
+      endTimestamp: ev.endTimestamp,
+      isBreak: ev.break,
+      userId: user.value!.id
+    })
     calendarEvents.value.push(ev)
+  } else {
+    calendarEvents.value[index] = { ...ev }
   }
 }
 

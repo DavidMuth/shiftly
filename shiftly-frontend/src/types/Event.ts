@@ -12,7 +12,8 @@ export interface NewEventRequest {
     description: string;
     startTimestamp: string;
     endTimestamp: string;
-    break: boolean
+    break: boolean,
+    userId: number
 }
 
 export interface FrontEndEvent extends EventResponse {
