@@ -58,4 +58,8 @@ public class EventService {
 
         return eventRepository.edit(event);
     }
+
+    public Boolean deleteEvent(int eventId) {
+        return eventRepository.delete(eventId);
+    }
 }

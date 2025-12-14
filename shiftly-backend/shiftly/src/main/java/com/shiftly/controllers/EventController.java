@@ -32,6 +32,11 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventsFromUser(userId));
     }
 
+    @DeleteMapping("/delete/{eventId}")
+    public ResponseEntity<Boolean> deleteEvent(@PathVariable int eventId) {
+        return ResponseEntity.ok(eventService.deleteEvent(eventId));
+    }
+
     @PostMapping("/create")
     public ResponseEntity<Boolean> createEvent(@RequestBody CreateEventRequest eventRequest) {
         if (eventRequest.getUserId() == 0) {

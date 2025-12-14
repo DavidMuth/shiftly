@@ -80,4 +80,10 @@ public class EventRepository {
 
         return true;
     }
+
+    public Boolean delete(int eventId) {
+        String sql = "DELETE FROM events WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, eventId);
+        return rowsAffected > 0;
+    }
 }

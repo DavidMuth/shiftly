@@ -175,6 +175,7 @@ const onCancelEvent = () => {
 const onDeleteEvent = (ev: FrontEndEvent) => {
   const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
   if (index !== -1) {
+    eventStore.deleteCalendarEvent(ev.eventId!, user.value!.id)
     calendarEvents.value.splice(index, 1)
   }
 }

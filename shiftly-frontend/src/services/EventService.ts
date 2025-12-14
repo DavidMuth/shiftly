@@ -15,6 +15,10 @@ class EventService {
   editCalendarEvent(editEvent: EditEventRequest) {
     return apiClient.post<boolean>(this.resource + "/update", editEvent);
   }
+
+  deleteCalendarEvent(eventId: number) {
+    return apiClient.delete<boolean>(this.resource + "/delete/" + eventId);
+  }
 }
 
 export default new EventService();

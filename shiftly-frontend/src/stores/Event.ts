@@ -48,10 +48,25 @@ export const useEventStore = defineStore('Event', {
           this.getEventsFromUser(editEvent.userId);
         }
         else{
-          throw new Error("Event edtion failed on server");
+          throw new Error("Event edit failed on server");
         }
       } catch (error) {
         console.error("Failed to edit event: ", error)
+        throw error;
+      }
+    },
+
+    async deleteCalendarEvent(eventId: number, userId: number): Promise<void> {
+      try {
+        const response =  await EventService.deleteCalendarEvent(eventId)
+        if(response.data){
+          this.getEventsFromUser(userId);
+        }
+        else{
+          throw new Error("Event delete failed on server");
+        }
+      } catch (error) {
+        console.error("Failed to delete event: ", error)
         throw error;
       }
     },
