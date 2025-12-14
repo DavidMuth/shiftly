@@ -293,8 +293,13 @@ const weekRange = computed(() => {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
 
-  // Formatierung YYYY-MM-DD
-  const format = (d: Date)  => d.toISOString().substring(0, 10);
+  // Lokales Datum formatieren YYYY-MM-DD
+  const format = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   return `${format(monday)} — ${format(sunday)}`;
 });

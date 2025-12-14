@@ -81,4 +81,33 @@ public class UserRepository {
         user.setId(keyHolder.getKey().intValue());
         return user;
     }
+
+    public User updateWorkingHours(User user) {
+        String sql = "UPDATE user SET working_hours = ? WHERE id = ?";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, user.getWorkingHours());
+            ps.setInt(2, user.getId());
+            return ps;
+        }, keyHolder);
+
+        return user;
+    }
+
+    public User updatePassword(User user) {
+        String sql = "UPDATE user SET password_hash = ? WHERE id = ?";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, user.getPasswordHash());
+            ps.setInt(2, user.getId());
+            return ps;
+        }, keyHolder);
+
+        return user;
+    }
+
 }
