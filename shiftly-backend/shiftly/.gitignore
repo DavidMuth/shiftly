@@ -38,3 +38,4 @@ out/
 
 ### DB ####
 ./database/init-db.sql
+./database/shiftly.db
