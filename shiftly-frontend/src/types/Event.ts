@@ -7,6 +7,14 @@ export interface EventResponse {
     break: boolean
 }
 
+export interface NewEventRequest {
+    name: string;
+    description: string;
+    startTimestamp: string;
+    endTimestamp: string;
+    break: boolean
+}
+
 export interface FrontEndEvent extends EventResponse {
   start: number         // für Vuetify & dragging
   end: number

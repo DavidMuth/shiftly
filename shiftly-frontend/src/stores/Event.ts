@@ -1,4 +1,4 @@
-import type { EventResponse } from '@/types/Event';
+import type { EventResponse, NewEventRequest } from '@/types/Event';
 import { defineStore } from 'pinia';
 import EventService from '@/services/EventService';
 
@@ -23,6 +23,23 @@ export const useEventStore = defineStore('Event', {
       } catch (error) {
         this.events = null;
         console.error("Get events failed:", error);
+      }
+    },
+
+    async createCalendarEvent(newEvent: NewEventRequest): Promise<void> {
+      try {
+        const response =  await EventService.createCalendarEvent(newEvent)
+         console.log(response.data);
+        if(response.data){
+          //this.getEventsFromUser(newEvent.userId);
+          console.log("Event created successfully");
+        }
+        else{
+          throw new Error("Event creation failed on server");
+        }
+      } catch (error) {
+        console.error("Failed to create event: ", error)
+        throw error;
       }
     },
   },
