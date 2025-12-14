@@ -59,6 +59,7 @@
       :event="selectedEvent"
       @save="onSaveEvent"
       @delete="onDeleteEvent"
+      @cancel="onCancelEvent "
       />
 </template>
 
@@ -143,6 +144,13 @@ const onSaveEvent = (ev: FrontEndEvent) => {
   }
 }
 
+// Optional: EventDialog abbrechen -> Parent wird informiert, und Kalender zurücksetzen
+const onCancelEvent = () => {
+  // EventDialog geschlossen ohne Speichern → original Events wiederherstellen
+  calendarEvents.value = originEvents.value.map(ev => ({ ...ev })) // tief kopieren
+  dialogOpen.value = false
+
+}
 const onDeleteEvent = (ev: FrontEndEvent) => {
   const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
   if (index !== -1) {
@@ -175,14 +183,17 @@ const mapBackendToCalendar = (backend: EventResponse[]): FrontEndEvent[] => {
   })
 }
 
+// Backup der Original-Events vom Backend
+const originEvents = ref<FrontEndEvent[]>([])
 watch(
   () => eventStore.getEvents,
   (val) => {
     const backend = val as EventResponse[] | undefined
 
     // Mappe die Backend-Events in FrontEndEvents für den Kalender
-    // Wenn keine Events vorhanden → leeres Array
     calendarEvents.value = backend ? mapBackendToCalendar(backend) : []
+    // Backup speichern
+    originEvents.value = backend ? mapBackendToCalendar(backend) : []
   },
   { immediate: true, deep: true }
 )

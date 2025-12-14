@@ -7,7 +7,7 @@
         variant="text"
         class="position-absolute"
         style="top: 8px; right: 8px"
-        @click="internalDialog = false"
+        @click="$emit('cancel')"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -125,6 +125,7 @@ const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "save", value: FrontEndEvent): void;
   (e: "delete", value: FrontEndEvent): void;
+  (e: "cancel"): void;
 }>();
 
 const internalDialog = ref<boolean>(props.modelValue);
