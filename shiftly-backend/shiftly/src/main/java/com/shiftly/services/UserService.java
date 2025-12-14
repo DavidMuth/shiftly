@@ -1,14 +1,21 @@
 package com.shiftly.services;
 
+import com.shiftly.config.SecurityConfig;
 import com.shiftly.dto.CreateUserRequest;
+import com.shiftly.dto.UpdatePasswordRequest;
+import com.shiftly.dto.UpdateWorkingHoursRequest;
 import com.shiftly.dto.UserResponse;
 import com.shiftly.exceptions.UserAlreadyExistsException;
 import com.shiftly.models.User;
 import com.shiftly.repositories.UserRepository;
 import jakarta.validation.ValidationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -20,6 +27,7 @@ public class UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request) {
@@ -47,6 +55,49 @@ public class UserService {
                 savedUser.getName(),
                 savedUser.getEmail(),
                 savedUser.getWorkingHours()
+        );
+    }
+
+    public UserResponse updateUserWorkingHours(UpdateWorkingHoursRequest request, int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
+
+        user.setWorkingHours(request.getWorkingHours());
+
+        User updatedUser = userRepository.updateWorkingHours(user);
+
+        return new UserResponse(
+                updatedUser.getId(),
+                updatedUser.getName(),
+                updatedUser.getEmail(),
+                updatedUser.getWorkingHours()
+        );
+    }
+
+    public UserResponse updateUserPassword(UpdatePasswordRequest request, int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
+
+        String passwordHash = getUserPasswordHash(user.getEmail());
+        if (!SecurityConfig.passwordEncoder().matches(request.getCurrentPassword(), passwordHash)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid password"
+            );
+        }
+
+        if (!request.passwordsMatch()) {
+            throw  new RuntimeException("New passwords do not match.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        User updatedUser = userRepository.updatePassword(user);
+
+        return new UserResponse(
+                updatedUser.getId(),
+                updatedUser.getName(),
+                updatedUser.getEmail(),
+                updatedUser.getWorkingHours()
         );
     }
 
