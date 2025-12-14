@@ -148,8 +148,8 @@ const endTime = ref<string | null>(null);
 watch(() => props.modelValue, v => (internalDialog.value = v));
 watch(internalDialog, v => emit("update:modelValue", v));
 
+// Fehler handling wenn timepicker null ist
 watch(startDate, (val) => {
-  console.log("startDate changed:", val);
   if (val && !startTime.value) {
     startTime.value = "00:00";
   }

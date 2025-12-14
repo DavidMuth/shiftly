@@ -269,6 +269,9 @@ const extendBottom = (event: any) => {
   createEvent.value = ev
   createStart.value = ev.start
   extendOriginal.value = ev.end
+
+  ev.startTimestamp = new Date(ev.start).toISOString()
+  ev.endTimestamp = new Date(ev.end).toISOString()
 }
 
 // Mouse-Move Event -> Diese Funktion wird jedes Mal ausgeführt, wenn die Maus sich innerhalb des Kalenders bewegt während du ein Event ziehst oder neu erstellst.
@@ -295,7 +298,12 @@ const endDrag = () => {
   // Entscheide, welches Event gerade relevant ist
   const evToEdit = dragEvent.value ?? createEvent.value
   if (evToEdit) {
-    selectedEvent.value = { ...evToEdit }  // Setze Event für Dialog
+    // Timestamp für Dialog/Backend synchronisieren
+    evToEdit.startTimestamp = new Date(evToEdit.start).toISOString()
+    evToEdit.endTimestamp = new Date(evToEdit.end).toISOString()
+
+    // Setze Event für Dialog
+    selectedEvent.value = { ...evToEdit }  // Event für Dialog öffnen
     dialogOpen.value = true                // Dialog öffnen
   }
 
