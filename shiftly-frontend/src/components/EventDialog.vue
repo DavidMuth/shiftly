@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="internalDialog" max-width="520px" :persistent="true">
     <v-card class="pa-4">
-      <!-- Close (X) rechts oben -->
+      <!-- Close (X) -->
       <v-btn
         icon
         variant="text"
@@ -11,6 +11,7 @@
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
+
       <v-card-text>
         <!-- Name -->
         <v-row class="mt-4">
@@ -52,9 +53,15 @@
             />
           </template>
 
-          <v-card>
-            <v-date-picker v-model="startDate" />
-            <v-time-picker format="24hr"  v-model="startTime" />
+          <v-card >
+            <v-card-text >
+              <v-date-picker v-model="startDate" value-format="YYYY-MM-DD" @update:model-value="onStartDateChange"/>
+              <v-time-picker
+                v-model="startTime"
+                format="24hr"
+                scrollable
+              />
+            </v-card-text>
 
             <v-card-actions>
               <v-spacer />
@@ -65,7 +72,7 @@
 
         <!-- End -->
         <div class="mt-4 font-weight-medium">End:</div>
-        <v-dialog v-model="endPicker" max-width="350px">
+       <v-dialog v-model="endPicker" max-width="350px">
           <template #activator="{ props }">
             <v-text-field
               v-bind="props"
@@ -75,9 +82,15 @@
             />
           </template>
 
-          <v-card>
-            <v-date-picker v-model="endDate" />
-            <v-time-picker format="24hr" v-model="endTime" />
+          <v-card >
+            <v-card-text >
+              <v-date-picker v-model="endDate" value-format="YYYY-MM-DD" />
+              <v-time-picker
+                v-model="endTime"
+                format="24hr"
+                scrollable
+              />
+            </v-card-text>
 
             <v-card-actions>
               <v-spacer />
@@ -101,7 +114,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import type { FrontEndEvent } from '@/types/Event';
+import type { FrontEndEvent } from "@/types/Event";
 
 const props = defineProps<{
   event: FrontEndEvent;
@@ -116,14 +129,14 @@ const emit = defineEmits<{
 
 const internalDialog = ref<boolean>(props.modelValue);
 
-// Lokales Event-Objekt für den Dialog
+// Local copy
 const localEvent = ref<FrontEndEvent>({
   ...props.event,
   startTimestamp: props.event?.startTimestamp ?? "",
   endTimestamp: props.event?.endTimestamp ?? "",
 });
 
-// Picker
+// Picker states
 const startPicker = ref(false);
 const endPicker = ref(false);
 const startDate = ref<string | null>(null);
@@ -131,73 +144,114 @@ const startTime = ref<string | null>(null);
 const endDate = ref<string | null>(null);
 const endTime = ref<string | null>(null);
 
-// Synchronisation Dialog <-> Parent
-watch(() => props.modelValue, (v) => internalDialog.value = v);
-watch(internalDialog, (v) => emit("update:modelValue", v));
-watch(() => props.event, (val) => {
-  localEvent.value = { ...val,
-    startTimestamp: val?.startTimestamp ?? "",
-    endTimestamp: val?.endTimestamp ?? ""
-  }
-}, { deep: true });
+// Dialog sync
+watch(() => props.modelValue, v => (internalDialog.value = v));
+watch(internalDialog, v => emit("update:modelValue", v));
 
-// Formatter für Textfelder
-const formatDisplay = (iso: string): string => {
-  if (!iso) return "";
-  const d = new Date(iso);
-
-  const pad = (n: number) => String(n).padStart(2, "0");
-
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  const seconds = pad(d.getSeconds());
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-};
-
-// Initialisiere Picker-Werte beim Öffnen des Dialogs
-watch(internalDialog, (open) => {
-  if (!open || !localEvent.value) return;
-
-  if (localEvent.value.startTimestamp) {
-    const [date, time] = localEvent.value.startTimestamp.split("T");
-    startDate.value = date ?? null;
-    startTime.value = time ? time.substring(0, 5) : null; // HH:mm
-    console.log(time)
-  } else {
-    startDate.value = null;
-    startTime.value = null;
-  }
-
-  if (localEvent.value.endTimestamp) {
-    const [date, time] = localEvent.value.endTimestamp.split("T");
-    endDate.value = date ?? null;
-    endTime.value = time ? time.substring(0, 5) : null; // HH:mm
-  } else {
-    endDate.value = null;
-    endTime.value = null;
+watch(startDate, (val) => {
+  console.log("startDate changed:", val);
+  if (val && !startTime.value) {
+    startTime.value = "00:00";
   }
 });
 
-// Apply Buttons
-const applyStart = () => {
-  if (startDate.value && startTime.value) {
-    localEvent.value.startTimestamp = `${startDate.value} ${startTime.value}:00`;
-  } else {
-    localEvent.value.startTimestamp = "";
+watch(endDate, (val) => {
+  if (val && !endTime.value) {
+    endTime.value = "00:00";
   }
+});
+
+watch(
+  () => props.event,
+  val => {
+    localEvent.value = {
+      ...val,
+      startTimestamp: val?.startTimestamp ?? "",
+      endTimestamp: val?.endTimestamp ?? "",
+    };
+  },
+  { deep: true }
+);
+
+const onStartDateChange = (val: string | Date) => {
+  if (!val) {
+    startDate.value = null;
+    return;
+  }
+
+  if (val instanceof Date) {
+    startDate.value = val.toISOString().slice(0, 10);
+  } else {
+    startDate.value = val;
+  }
+
+  // Default-Zeit setzen (UX!)
+  if (!startTime.value) {
+    startTime.value = "09:00";
+  }
+};
+
+// Display formatter
+const formatDisplay = (iso: string): string => {
+  if (!iso) return "";
+
+  const d = new Date(iso);
+
+  if (isNaN(d.getTime())) {
+    return "";
+  }
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+    d.getDate()
+  )} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+
+// Init pickers on open
+watch(internalDialog, open => {
+  if (!open) return;
+
+  if (localEvent.value.startTimestamp) {
+    const d = new Date(localEvent.value.startTimestamp);
+    if (!isNaN(d.getTime())) {
+      startDate.value = d.toISOString().slice(0, 10);
+      startTime.value = d.toTimeString().slice(0, 5);
+    }
+  }
+
+  if (localEvent.value.endTimestamp) {
+    const d = new Date(localEvent.value.endTimestamp);
+    if (!isNaN(d.getTime())) {
+      endDate.value = d.toISOString().slice(0, 10);
+      endTime.value = d.toTimeString().slice(0, 5);
+    }
+  }
+});
+
+// Apply buttons (ISO FORMAT!)
+const applyStart = () => {
+  if (!startDate.value || !startTime.value) {
+    startPicker.value = false;
+    return;
+  }
+
+  localEvent.value.startTimestamp =
+    `${startDate.value}T${startTime.value}:00`;
+
   startPicker.value = false;
 };
 
 const applyEnd = () => {
-  if (endDate.value && endTime.value) {
-    localEvent.value.endTimestamp = `${endDate.value} ${endTime.value}:00`;
-  } else {
-    localEvent.value.endTimestamp = "";
+  if (!endDate.value || !endTime.value) {
+    endPicker.value = false;
+    return;
   }
+
+  localEvent.value.endTimestamp =
+    `${endDate.value}T${endTime.value}:00`;
+
   endPicker.value = false;
 };
 
