@@ -12,8 +12,18 @@ export interface NewEventRequest {
     description: string;
     startTimestamp: string;
     endTimestamp: string;
-    break: boolean,
+    isBreak: boolean,
     userId: number
+}
+
+export interface EditEventRequest {
+    name: string;
+    description: string;
+    startTimestamp: string;
+    endTimestamp: string;
+    isBreak: boolean,
+    userId: number,
+    eventId: number
 }
 
 export interface FrontEndEvent extends EventResponse {

@@ -26,7 +26,7 @@ public class EventRepository {
                     rs.getString("description"),
                     rs.getTimestamp("start_timestamp"),
                     rs.getTimestamp("end_timestamp"),
-                    rs.getBoolean("is_break")
+                    (rs.getBoolean("is_break"))
             );
 
     public EventRepository(JdbcTemplate jdbcTemplate) {
@@ -56,6 +56,25 @@ public class EventRepository {
             ps.setTimestamp(4, event.getEndTimestamp());
             ps.setBoolean(5, event.isBreak());
             ps.setInt(6, event.getUserId());
+            return ps;
+        }, keyHolder);
+
+        return true;
+    }
+
+    public Boolean edit(Event event) {
+        String sql = "UPDATE events SET name = ?, description = ?, start_timestamp = ?, end_timestamp = ?, is_break = ?, user_id = ? WHERE id = ?";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, event.getName());
+            ps.setString(2, event.getDescription());
+            ps.setTimestamp(3, event.getStartTimestamp());
+            ps.setTimestamp(4, event.getEndTimestamp());
+            ps.setBoolean(5, event.isBreak());
+            ps.setInt(6, event.getUserId());
+            ps.setInt(7, event.getId());
             return ps;
         }, keyHolder);
 

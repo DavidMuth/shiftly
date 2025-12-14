@@ -1,9 +1,6 @@
 package com.shiftly.services;
 
-import com.shiftly.dto.CreateEventRequest;
-import com.shiftly.dto.CreateUserRequest;
-import com.shiftly.dto.EventResponse;
-import com.shiftly.dto.UserResponse;
+import com.shiftly.dto.*;
 import com.shiftly.exceptions.UserAlreadyExistsException;
 import com.shiftly.models.Event;
 import com.shiftly.models.User;
@@ -48,4 +45,17 @@ public class EventService {
         return eventRepository.create(event);
     }
 
+    public Boolean editEvent(UpdateEventRequest request) {
+        // create event
+        Event event = new Event();
+        event.setName(request.getName());
+        event.setBreak(request.getIsBreak());
+        event.setDescription(request.getDescription());
+        event.setStartTimestamp(request.getStartTimestamp());
+        event.setEndTimestamp(request.getEndTimestamp());
+        event.setUserId(request.getUserId());
+        event.setId(request.getEventId());
+
+        return eventRepository.edit(event);
+    }
 }

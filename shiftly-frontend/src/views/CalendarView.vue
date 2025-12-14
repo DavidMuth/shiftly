@@ -139,6 +139,7 @@ const onSaveEvent = (ev: FrontEndEvent) => {
 
   console.log('Saving event:', index, ev)
   if (index === -1 || ev.eventId < 0) {
+    console.log('Creating new event')
     eventStore.createCalendarEvent({
       name: ev.name,
       description: ev.description,
@@ -148,7 +149,18 @@ const onSaveEvent = (ev: FrontEndEvent) => {
       userId: user.value!.id
     })
     calendarEvents.value.push(ev)
+    return
   } else {
+    console.log('Editing existing event')
+    eventStore.editCalendarEvent({
+      eventId: ev.eventId!,
+      name: ev.name,
+      description: ev.description,
+      startTimestamp: ev.startTimestamp,
+      endTimestamp: ev.endTimestamp,
+      isBreak: ev.break,
+      userId: user.value!.id
+    })
     calendarEvents.value[index] = { ...ev }
   }
 }
