@@ -101,7 +101,8 @@
       </v-card-text>
 
       <v-card-actions class="d-flex justify-space-between">
-        <v-btn color="error" variant="text" @click="onDelete">
+        <v-btn color="error" variant="text"   :disabled="!localEvent.eventId || localEvent.eventId < 0"
+           @click="onDelete">
           <v-icon class="mr-1">mdi-delete</v-icon>
           Delete
         </v-btn>
