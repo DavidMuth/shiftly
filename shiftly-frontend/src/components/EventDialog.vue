@@ -84,7 +84,7 @@
 
           <v-card >
             <v-card-text >
-              <v-date-picker v-model="endDate" value-format="YYYY-MM-DD" />
+              <v-date-picker v-model="endDate" value-format="YYYY-MM-DD"  @update:model-value="onEndDateChange"/>
               <v-time-picker
                 v-model="endTime"
                 format="24hr"
@@ -106,14 +106,14 @@
           Delete
         </v-btn>
 
-        <v-btn color="primary" @click="onSave">Save</v-btn>
+        <v-btn color="primary" :disabled="!isSaveEnabled" @click="onSave">Save</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import type { FrontEndEvent } from "@/types/Event";
 
 const props = defineProps<{
@@ -188,7 +188,25 @@ const onStartDateChange = (val: string | Date) => {
 
   // Default-Zeit setzen (UX!)
   if (!startTime.value) {
-    startTime.value = "09:00";
+    startTime.value = "00:00";
+  }
+};
+
+const onEndDateChange = (val: string | Date) => {
+  if (!val) {
+    endDate.value = null;
+    return;
+  }
+
+  if (val instanceof Date) {
+    endDate.value = val.toISOString().slice(0, 10);
+  } else {
+    endDate.value = val;
+  }
+
+  // Default-Zeit setzen (UX!)
+  if (!endTime.value) {
+    endTime.value = "00:00";
   }
 };
 
@@ -255,6 +273,23 @@ const applyEnd = () => {
 
   endPicker.value = false;
 };
+
+// Speicher Button Validation
+const isSaveEnabled = computed(() => {
+  // Name muss gesetzt sein
+  if (!localEvent.value.name || localEvent.value.name.trim() === "") return false
+
+  // Start und End müssen gültig sein
+  if (!localEvent.value.startTimestamp || !localEvent.value.endTimestamp) return false
+
+  // Start darf nicht nach End liegen
+  const start = new Date(localEvent.value.startTimestamp).getTime()
+  const end = new Date(localEvent.value.endTimestamp).getTime()
+  if (isNaN(start) || isNaN(end) || start > end) return false
+
+  return true
+})
+
 
 // Save/Delete
 const onSave = () => {
