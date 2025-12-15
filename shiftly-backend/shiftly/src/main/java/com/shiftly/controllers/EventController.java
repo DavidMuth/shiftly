@@ -2,6 +2,7 @@ package com.shiftly.controllers;
 
 import com.shiftly.dto.CreateEventRequest;
 import com.shiftly.dto.EventResponse;
+import com.shiftly.dto.UpdateEventRequest;
 import com.shiftly.dto.UserResponse;
 import com.shiftly.services.EventService;
 import com.sun.jdi.request.EventRequest;
@@ -31,6 +32,11 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventsFromUser(userId));
     }
 
+    @DeleteMapping("/delete/{eventId}")
+    public ResponseEntity<Boolean> deleteEvent(@PathVariable int eventId) {
+        return ResponseEntity.ok(eventService.deleteEvent(eventId));
+    }
+
     @PostMapping("/create")
     public ResponseEntity<Boolean> createEvent(@RequestBody CreateEventRequest eventRequest) {
         if (eventRequest.getUserId() == 0) {
@@ -38,5 +44,14 @@ public class EventController {
         }
 
         return ResponseEntity.ok(eventService.createEvent(eventRequest));
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<Boolean> editEvent(@RequestBody UpdateEventRequest eventRequest) {
+        if (eventRequest.getUserId() == 0) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(eventService.editEvent(eventRequest));
     }
 }

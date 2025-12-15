@@ -1,6 +1,6 @@
 <template>
   <v-row class="fill-height">
-    <v-col ><v-btn color="primary">Add Event</v-btn></v-col>
+    <v-col ><v-btn color="primary" @click="openNewEvent">Add Event</v-btn></v-col>
     <v-spacer></v-spacer>
     <v-col cols="3">
       <v-menu
@@ -43,7 +43,7 @@
            :weekdays="[1, 2, 3, 4, 5, 6, 0]"
         >
           <template v-slot:event="{ event, timed }">
-            <div class="v-event-draggable">
+            <div class="v-event-draggable" style="width: 100%; height: 100%;"   @dblclick.stop="openEditEvent(event)">
               <strong>{{ getDay(event.start) }}</strong> - {{ event.name }}
             </div>
             <div
@@ -54,6 +54,13 @@
           </template>
         </v-calendar>
       </v-sheet>
+      <EventDialog
+      v-model="dialogOpen"
+      :event="selectedEvent"
+      @save="onSaveEvent"
+      @delete="onDeleteEvent"
+      @cancel="onCancelEvent "
+      />
 </template>
 
 <script lang="ts" setup>
@@ -63,6 +70,7 @@ import { VDatePicker, VMenu, VTextField } from 'vuetify/components'
 import { useEventStore } from '@/stores/Event'
 import type { EventResponse, FrontEndEvent } from '@/types/Event';
 import { useUserStore } from '@/stores/User'
+import EventDialog from '@/components/EventDialog.vue'
 
 const userStore = useUserStore()
 const eventStore = useEventStore()
@@ -92,6 +100,88 @@ interface Tms {
   minute: number
 }
 
+const emptyEvent: FrontEndEvent = {
+  eventId: -1,
+  name: '',
+  description: '',
+  startTimestamp: '',
+  endTimestamp: '',
+  startText: '',
+  endText: '',
+  timed: true,
+  break: false,
+  color: 'orange',
+  start : 0,
+  end: 0,
+}
+
+const dialogOpen = ref(false)
+
+// Event Dialog öffnen
+const openNewEvent = () => {
+  selectedEvent.value = { ...emptyEvent }
+  dialogOpen.value = true
+}
+
+// EditeriDialog öffnen
+const openEditEvent = (event: FrontEndEvent) => {
+  console.log(event)
+  const ev = findCalendarEvent(event)
+  if (!ev) return
+
+  selectedEvent.value = { ...ev }
+  dialogOpen.value = true
+}
+
+// Speichern unterschied zwischen neu und editieren mit Hilfe der ID -> -1 = neu
+const onSaveEvent = (ev: FrontEndEvent) => {
+  const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
+
+  console.log('Saving event:', index, ev)
+  if (index === -1 || ev.eventId < 0) {
+    console.log('Creating new event')
+    eventStore.createCalendarEvent({
+      name: ev.name,
+      description: ev.description,
+      startTimestamp: ev.startTimestamp,
+      endTimestamp: ev.endTimestamp,
+      isBreak: ev.break,
+      userId: user.value!.id
+    })
+    calendarEvents.value.push(ev)
+    return
+  } else {
+    console.log('Editing existing event')
+    eventStore.editCalendarEvent({
+      eventId: ev.eventId!,
+      name: ev.name,
+      description: ev.description,
+      startTimestamp: ev.startTimestamp,
+      endTimestamp: ev.endTimestamp,
+      isBreak: ev.break,
+      userId: user.value!.id
+    })
+    calendarEvents.value[index] = { ...ev }
+  }
+}
+
+// Optional: EventDialog abbrechen -> Parent wird informiert, und Kalender zurücksetzen
+const onCancelEvent = () => {
+  // EventDialog geschlossen ohne Speichern → original Events wiederherstellen
+  calendarEvents.value = originEvents.value.map(ev => ({ ...ev })) // tief kopieren
+  dialogOpen.value = false
+
+}
+const onDeleteEvent = (ev: FrontEndEvent) => {
+  const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
+  if (index !== -1) {
+    eventStore.deleteCalendarEvent(ev.eventId!, user.value!.id)
+    calendarEvents.value.splice(index, 1)
+  }
+}
+
+const selectedEvent = ref<FrontEndEvent>({ ...emptyEvent })
+
 // Datum für Calendar & DatePicker
 const selectedDate = ref(new Date().toISOString().substring(0, 10))
 const menu = ref(false)
@@ -115,14 +205,17 @@ const mapBackendToCalendar = (backend: EventResponse[]): FrontEndEvent[] => {
   })
 }
 
+// Backup der Original-Events vom Backend
+const originEvents = ref<FrontEndEvent[]>([])
 watch(
   () => eventStore.getEvents,
   (val) => {
     const backend = val as EventResponse[] | undefined
 
     // Mappe die Backend-Events in FrontEndEvents für den Kalender
-    // Wenn keine Events vorhanden → leeres Array
     calendarEvents.value = backend ? mapBackendToCalendar(backend) : []
+    // Backup speichern
+    originEvents.value = backend ? mapBackendToCalendar(backend) : []
   },
   { immediate: true, deep: true }
 )
@@ -179,7 +272,9 @@ const startTime = (_e: Event, tms: Tms) => {
     // Berechne Offset zwischen Maus und Event-Start
     // Damit das Event beim Drag unter der Maus bleibt
     dragTime.value = mouse - (dragEvent.value.start as number)
-  } else {
+    return
+  }
+  if (!dragEvent.value && !createEvent.value) {
     createStart.value = roundTime(mouse)
     const newEv: FrontEndEvent = {
       // Temporäre negative ID, bis Backend eine echte vergibt
@@ -207,6 +302,9 @@ const extendBottom = (event: any) => {
   createEvent.value = ev
   createStart.value = ev.start
   extendOriginal.value = ev.end
+
+  ev.startTimestamp = new Date(ev.start).toISOString()
+  ev.endTimestamp = new Date(ev.end).toISOString()
 }
 
 // Mouse-Move Event -> Diese Funktion wird jedes Mal ausgeführt, wenn die Maus sich innerhalb des Kalenders bewegt während du ein Event ziehst oder neu erstellst.
@@ -229,7 +327,20 @@ const mouseMove = (_e: Event, tms: Tms) => {
 }
 
 // Drag/Erstellung beenden
-const endDrag = async () => {
+const endDrag = () => {
+  // Entscheide, welches Event gerade relevant ist
+  const evToEdit = dragEvent.value ?? createEvent.value
+  if (evToEdit) {
+    // Timestamp für Dialog/Backend synchronisieren
+    evToEdit.startTimestamp = new Date(evToEdit.start).toISOString()
+    evToEdit.endTimestamp = new Date(evToEdit.end).toISOString()
+
+    // Setze Event für Dialog
+    selectedEvent.value = { ...evToEdit }  // Event für Dialog öffnen
+    dialogOpen.value = true                // Dialog öffnen
+  }
+
+  // Drag/Creation Variablen zurücksetzen
   dragEvent.value = null
   dragTime.value = null
   createEvent.value = null

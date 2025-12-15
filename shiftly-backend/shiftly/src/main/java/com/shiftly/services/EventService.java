@@ -52,6 +52,25 @@ public class EventService {
         return eventRepository.create(event);
     }
 
+    public Boolean editEvent(UpdateEventRequest request) {
+        // create event
+        Event event = new Event();
+        event.setName(request.getName());
+        event.setBreak(request.getIsBreak());
+        event.setDescription(request.getDescription());
+        event.setStartTimestamp(request.getStartTimestamp());
+        event.setEndTimestamp(request.getEndTimestamp());
+        event.setUserId(request.getUserId());
+        event.setId(request.getEventId());
+
+        return eventRepository.edit(event);
+    }
+  
+    public Boolean deleteEvent(int eventId) {
+        return eventRepository.delete(eventId);
+    }
+
+    
     @Transactional
     public int startEvent(TimeTrackStartRequest request, int userId) {
         Event event = new Event();
@@ -63,7 +82,7 @@ public class EventService {
 
         return eventRepository.startEvent(event);
     }
-
+  
     @Transactional
     public int stopEvent(TimeTrackStopRequest request, int userId) {
         Event existingEvent = getEventById(userId, request.getEventId());
