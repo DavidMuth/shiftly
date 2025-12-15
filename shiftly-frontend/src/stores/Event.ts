@@ -25,5 +25,27 @@ export const useEventStore = defineStore('Event', {
         console.error("Get events failed:", error);
       }
     },
+
+    async startTracking(name: string, description: string, isBreak: boolean, startTimestamp: number): Promise<Number> {
+      try {
+        const response = await EventService.startTracking(name, description, isBreak, startTimestamp)
+        console.log("response:", response)
+        return response.data
+      } catch (error) {
+        console.error("Failed to start tracking event:", error)
+        throw error;
+      }
+    },
+    
+    async stopTracking(id: number, endTimestamp: number): Promise<Number> {
+      try {
+        const response = await EventService.stopTracking(id, endTimestamp)
+        console.log("response:", response)
+        return response.data
+      } catch (error) {
+        console.error("Failed to stop tracking event:", error)
+        throw error;
+      }
+    }
   },
 });

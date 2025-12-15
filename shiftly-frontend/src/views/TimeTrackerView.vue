@@ -197,14 +197,17 @@
 </template>
 
 <script setup>
+import { useEventStore } from '@/stores/Event'
 import { ref, computed, onUnmounted } from 'vue'
 import { useTheme } from 'vuetify'
 
 const theme = useTheme()
+const eventStore = useEventStore();
 
 // State
 const isTracking = ref(false)
 const isBreak = ref(false)
+const eventId = ref();
 const eventName = ref('')
 const eventDescription = ref('')
 const currentEventName = ref('')
@@ -245,7 +248,7 @@ const stopTimer = () => {
 }
 
 // Methods
-const startTracking = () => {
+const startTracking = async () => {
   if (!eventName.value) return
   
   currentEventName.value = eventName.value
@@ -257,26 +260,26 @@ const startTracking = () => {
   // Start the frontend timer
   startTimer()
   
-  // TODO: Add API call to backend
-  // const payload = {
-  //   name: eventName.value,
-  //   description: eventDescription.value,
-  //   startTimestamp: Date.now(),
-  //   isBreak: isBreak.value
-  // }
-  // await api.post('/time-track/start', payload)
+  eventId.value = await eventStore.startTracking(
+    eventName.value,
+    eventDescription.value,
+    isBreak.value,
+    Date.now()
+  )
 }
 
-const stopTracking = () => {
+const stopTracking = async () => {
   // Stop the frontend timer
   stopTimer()
   
-  // TODO: Add API call to backend
-  // const payload = {
-  //   eventId: currentEventId,
-  //   endTimestamp: Date.now()
-  // }
-  // await api.put('/time-track/stop', payload)
+  eventId.value = await eventStore.stopTracking(
+    eventId.value,
+    Date.now()
+  )
+
+  if (eventId.value == 0) {
+    alert("Failed to stop tracking event. Please try again.")
+  }
   
   // Reset state
   isTracking.value = false
