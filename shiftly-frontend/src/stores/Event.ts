@@ -46,7 +46,7 @@ export const useEventStore = defineStore('Event', {
         console.error("Failed to stop tracking event:", error)
         throw error;
       }
-    }
+    },
 
     async createCalendarEvent(newEvent: NewEventRequest): Promise<void> {
       try {
