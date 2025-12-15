@@ -6,6 +6,7 @@ import com.shiftly.models.Event;
 import com.shiftly.models.User;
 import com.shiftly.repositories.EventRepository;
 import jakarta.validation.ValidationException;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,12 @@ public class EventService {
         return events.stream()
                 .map(EventResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Event getEventById(int userId, int eventId) {
+        return eventRepository.getEventById(userId, eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found " + eventId));
     }
 
     @Transactional
@@ -58,8 +65,42 @@ public class EventService {
 
         return eventRepository.edit(event);
     }
-
+  
     public Boolean deleteEvent(int eventId) {
         return eventRepository.delete(eventId);
+    }
+
+    
+    @Transactional
+    public int startEvent(TimeTrackStartRequest request, int userId) {
+        Event event = new Event();
+        event.setName(request.getName());
+        event.setBreak(request.getIsBreak());
+        event.setDescription(request.getDescription());
+        event.setStartTimestamp(request.getStartTimestamp());
+        event.setUserId(userId);
+
+        return eventRepository.startEvent(event);
+    }
+  
+    @Transactional
+    public int stopEvent(TimeTrackStopRequest request, int userId) {
+        Event existingEvent = getEventById(userId, request.getEventId());
+        if (existingEvent == null) {
+            throw new ResourceNotFoundException("Event not found or does not belong to user");
+        }
+
+        Event event = new Event();
+        event.setUserId(userId);
+        event.setId(request.getEventId());
+        event.setEndTimestamp(request.getEndTimestamp());
+
+        int rowsAffected = eventRepository.stopEvent(event);
+
+        if (rowsAffected == 0) {
+            throw new ResourceNotFoundException("Failed to stop event");
+        }
+
+        return request.getEventId();
     }
 }

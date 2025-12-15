@@ -48,6 +48,9 @@ onMounted(async () => {
     <!-- APP BAR -> deaktiviert bei Login -->
     <v-app-bar v-if="!hideLayout" app dark>
       <v-img :src="logo" :max-width="150" :max-height="400" />
+      <h3>
+          Hello <span class="text-primary">{{ userStore.getUser?.name }}</span>, let us track your day!
+      </h3>
       <v-spacer></v-spacer>
 
 
