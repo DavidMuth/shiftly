@@ -10,7 +10,7 @@ class AuthService {
   }
 
   signup(req: Signup) {
-    return apiClient.post<SignupResponse>(this.resource, req)
+    return apiClient.post<SignupResponse>("/api/signup", req)
   }
 }
 

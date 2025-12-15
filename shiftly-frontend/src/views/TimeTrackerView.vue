@@ -7,8 +7,8 @@
           <v-col cols="12" class="d-flex flex-column align-center justify-center pa-0">
             <!-- Tracking Circle Container -->
             <div class="tracking-container">
-              <!-- Animated Circle Border -->
-              <svg class="progress-ring" width="900" height="900" viewBox="0 0 900 900">
+              <!-- Animated Circle Border - Hidden on Mobile -->
+              <svg v-if="!smAndDown" class="progress-ring" viewBox="0 0 900 900" preserveAspectRatio="xMidYMid meet">
                 <circle
                   class="progress-ring-circle-bg"
                   :stroke="theme.current.value.dark ? '#424242' : '#E8EAF6'"
@@ -36,8 +36,8 @@
                 v-if="!isTracking"
                 class="tracking-content elevation-8"
                 rounded="xl"
-                width="400"
-                height="500"
+                :width="cardWidth"
+                :height="cardHeight"
               >
                 <v-card-text class="d-flex flex-column align-center justify-center fill-height pa-10">
                   <h2 class="text-h4 font-weight-bold mb-8" :class="theme.current.value.dark ? 'text-indigo-lighten-2' : 'text-indigo-darken-1'">
@@ -67,8 +67,7 @@
                     variant="outlined"
                     density="comfortable"
                     rounded="lg"
-                    class="mb-4"
-                    style="max-width: 360px; min-width: 300px;"
+                    class="mb-4 responsive-input"
                     hide-details
                     clearable
                   >
@@ -86,7 +85,7 @@
                     density="comfortable"
                     rounded="lg"
                     rows="2"
-                    style="max-width: 360px; min-width: 300px;"
+                    class="responsive-input"
                     hide-details
                     clearable
                   >
@@ -116,8 +115,8 @@
                 v-else
                 class="tracking-content-active elevation-12"
                 rounded="xl"
-                width="400"
-                height="500"
+                :width="cardWidth"
+                :height="cardHeight"
                 :color="isBreak ? 'orange-darken-2' : 'indigo'"
               >
                 <v-card-text class="d-flex flex-column align-center justify-center fill-height pa-10">
@@ -199,9 +198,10 @@
 <script setup>
 import { useEventStore } from '@/stores/Event'
 import { ref, computed, onUnmounted } from 'vue'
-import { useTheme } from 'vuetify'
+import { useTheme, useDisplay } from 'vuetify'
 
 const theme = useTheme()
+const { xs, smAndDown } = useDisplay()
 const eventStore = useEventStore();
 
 // State
@@ -224,6 +224,17 @@ let timerInterval = null
 const hours = computed(() => String(Math.floor(elapsedSeconds.value / 3600)).padStart(2, '0'))
 const minutes = computed(() => String(Math.floor((elapsedSeconds.value % 3600) / 60)).padStart(2, '0'))
 const seconds = computed(() => String(elapsedSeconds.value % 60).padStart(2, '0'))
+
+// Responsive card dimensions
+const cardWidth = computed(() => {
+  if (smAndDown.value) return '90vw'
+  return 400
+})
+
+const cardHeight = computed(() => {
+  if (smAndDown.value) return 'auto'
+  return 500
+})
 
 // Timer functions
 const updateTimer = () => {
@@ -298,11 +309,20 @@ onUnmounted(() => {
 <style scoped>
 .tracking-container {
   position: relative;
-  width: 900px;
-  height: 900px;
+  width: min(900px, 95vw);
+  height: min(900px, 95vw);
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 960px) {
+  .tracking-container {
+    width: auto;
+    height: auto;
+    min-height: 0;
+  }
 }
 
 .progress-ring {
@@ -342,6 +362,13 @@ onUnmounted(() => {
   z-index: 1;
 }
 
+@media (max-width: 960px) {
+  .tracking-content,
+  .tracking-content-active {
+    position: static;
+  }
+}
+
 .tracking-content-active {
   background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%);
   animation: gentle-pulse 3s ease-in-out infinite;
@@ -368,11 +395,28 @@ onUnmounted(() => {
   min-width: 200px;
 }
 
+.responsive-input {
+  width: 100%;
+  max-width: 360px; 
+}
+
+@media (max-width: 960px) {
+  .responsive-input {
+    max-width: 100%;
+  }
+}
+
 .time-display {
   background: rgba(255, 255, 255, 0.15);
   padding: 20px 32px;
   border-radius: 20px;
   backdrop-filter: blur(10px);
+}
+
+@media (max-width: 600px) {
+  .time-display {
+    padding: 16px 24px;
+  }
 }
 
 .time-unit {
@@ -382,7 +426,7 @@ onUnmounted(() => {
 }
 
 .time-value {
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
   font-weight: 700;
   color: white;
   line-height: 1;
@@ -390,18 +434,24 @@ onUnmounted(() => {
 }
 
 .time-label {
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 2vw, 0.75rem);
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   margin-top: 4px;
 }
 
 .time-separator {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 4vw, 2rem);
   color: white;
   font-weight: 700;
-  margin: 0 8px;
+  margin: 0 4px;
   opacity: 0.7;
+}
+
+@media (max-width: 600px) {
+  .time-separator {
+    margin: 0 2px;
+  }
 }
 
 .fill-height {

@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('Auth', {
     async signUp(req: Signup): Promise<SignupResponse> {
         const response = await AuthService.signup(req);
         console.log("response:", response)
-        return response
+        return response.data
     },
 
     logout(): void {

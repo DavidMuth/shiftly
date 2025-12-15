@@ -1,6 +1,6 @@
 <template>
   <v-container class="d-flex justify-center align-center" style="height: 100vh;">
-    <v-row style="width: 100%;">
+    <v-row style="max-width: 420px; width: 100%;">
       <v-col cols="20">
 
         <!-- Signup CARD -->
@@ -62,7 +62,7 @@
             @keyup.enter="handleSignup"
           />
 
-          <!-- Login Button -->
+          <!-- Signup Button -->
           <v-btn
             color="blue-darken-2"
             class="mt-4"
