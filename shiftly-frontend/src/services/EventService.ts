@@ -22,8 +22,12 @@ class EventService {
     })
   }
 
-  getEventsFromUser(userId: number){
+  getEventsFromUser(userId: number) {
     return apiClient.get<EventResponse[]>(this.resource + "/get/" + userId);
+  }
+
+  getEventsFromUserWithTimeRange(userId: number, startTs: number, endTs: number) {
+    return apiClient.get<EventResponse[]>(this.resource + "/get/" + userId + "?startTs=" + startTs + "&endTs=" + endTs)
   }
 
   createCalendarEvent(newEvent: NewEventRequest) {

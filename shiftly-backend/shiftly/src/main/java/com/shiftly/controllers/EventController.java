@@ -7,6 +7,7 @@ import com.shiftly.dto.UserResponse;
 import com.shiftly.services.EventService;
 import com.sun.jdi.request.EventRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +26,15 @@ public class EventController {
 
 
     @GetMapping("/get/{userId}")
-    public ResponseEntity<List<EventResponse>> getEventsFromUser(@PathVariable int userId) {
+    public ResponseEntity<List<EventResponse>> getEventsFromUser(
+            @PathVariable int userId,
+            @RequestParam(value = "startTs", defaultValue = "0") Long startTimestamp,
+            @RequestParam(value = "endTs", defaultValue = "0") Long endTimestamp
+    ) {
         if (userId == 0) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(eventService.getEventsFromUser(userId));
+        return ResponseEntity.ok(eventService.getEventsFromUser(userId, startTimestamp, endTimestamp));
     }
 
     @DeleteMapping("/delete/{eventId}")

@@ -34,3 +34,8 @@ export interface FrontEndEvent extends EventResponse {
   timed: true
   color: string
 }
+
+export interface TimeRange {
+    startTs: number;
+    endTs: number;
+}

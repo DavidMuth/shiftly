@@ -46,6 +46,17 @@ public class EventRepository {
         }
     }
 
+    public Optional<List<Event>> getEventsFromUser(int userId, Long startTimestamp, Long endTimestamp) {
+        String sql = "SELECT * FROM events WHERE user_id = ? AND start_timestamp >= ? AND end_timestamp <= ?";
+        List<Event> events = jdbcTemplate.query(sql, eventRowMapper, userId, startTimestamp, endTimestamp);
+
+        if (events.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(events);
+        }
+    }
+
     public Optional<Event> getEventById(int userId, int eventId) {
         try {
             String sql = "SELECT * FROM events WHERE user_id = ? AND id = ?";
