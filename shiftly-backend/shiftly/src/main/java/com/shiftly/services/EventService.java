@@ -22,9 +22,15 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-    public List<EventResponse> getEventsFromUser(int userId) {
-        List<Event> events = eventRepository.getEventsFromUser(userId)
-                .orElseThrow(() -> new RuntimeException("No events found for user " + userId));
+    public List<EventResponse> getEventsFromUser(int userId, Long startTimestamp, Long endTimestamp) {
+        List<Event> events;
+        if (startTimestamp != 0 && endTimestamp != 0) {
+            events = eventRepository.getEventsFromUser(userId, startTimestamp, endTimestamp)
+                    .orElseThrow(() -> new RuntimeException("No events found for user " + userId));
+        } else {
+            events = eventRepository.getEventsFromUser(userId)
+                    .orElseThrow(() -> new RuntimeException("No events found for user " + userId));
+        }
 
         // Liste von Event in EventResponse umwandeln
         return events.stream()
