@@ -13,10 +13,11 @@
               variant="elevated"
               prepend-icon="mdi-file-pdf-box"
               size="large"
+              @click="exportPDF"
             >
               Export PDF
             </v-btn>
-            
+
             <v-menu
               v-model="menu"
               :close-on-content-click="false"
@@ -49,7 +50,7 @@
           <v-card-title class="text-h6 font-weight-bold pa-6 pb-4">
             Time Tracking
           </v-card-title>
-          
+
           <v-card-text class="pa-6 pt-0">
             <!-- Stats Row -->
             <v-row class="mb-6">
@@ -87,7 +88,7 @@
                   />
                 </template>
               </Chart>
-              
+
               <!-- Legend -->
               <div class="d-flex justify-center ga-6 mt-4">
                 <div class="d-flex align-center ga-2">
@@ -123,11 +124,14 @@ import { getEndOfWeek, getStartOfWeek, getWeekBoundaries } from '@/utils/Date';
 import { computed, onMounted, ref, watch } from 'vue';
 import { Chart, Grid, Bar, Tooltip } from 'vue3-charts';
 import type { ChartAxis, Direction } from 'vue3-charts/dist/types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const userStore = useUserStore();
 const eventStore = useEventStore();
 const user = computed(() => userStore.getUser);
 const chartData = computed(() => eventStore.dailyChartData);
+const events = computed(() => eventStore.getEvents);
 
 const menu = ref(false);
 const selectedDate = ref<Date>(new Date());
@@ -169,42 +173,81 @@ const totalBreakTime = computed(() => {
 const weekRange = computed(() => {
   const start = new Date(currentWeekStart.value);
   const end = new Date(currentWeekEnd.value - 1);
-  
+
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: '2-digit'
     });
   };
-  
+
   return `${formatDate(start)} - ${formatDate(end)}`;
 });
+
+const exportPDF = () => {
+  if (!events.value || events.value.length === 0) {
+    console.warn('No events to export.');
+    return;
+  }
+
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text('Event Overview', 14, 20);
+
+  doc.setFontSize(11);
+  doc.text(`Week: ${weekRange.value}`, 14, 28);
+
+  const tableColumn = ['Event ID', 'Name', 'Description', 'Start', 'End', 'Break'];
+
+  const tableRows = events.value.map(event => [
+    event.eventId,
+    event.name,
+    event.description,
+    new Date(event.startTimestamp).toLocaleString(),
+    new Date(event.endTimestamp).toLocaleString(),
+    event.break ? 'Yes' : 'No'
+  ]);
+
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 32,
+    styles: { fontSize: 10, cellPadding: 3 },
+    headStyles: { fillColor: [25, 118, 210], textColor: 255 },
+    alternateRowStyles: { fillColor: [240, 240, 240] }
+  });
+
+  // "Dec 16, 2025 - Dec 22, 2025" → "events_Dec_16_2025_Dec_22_2025.pdf"
+  const safeWeekRange = weekRange.value.replace(/[^a-zA-Z0-9]/g, '_');
+  doc.save(`events_${safeWeekRange}.pdf`);
+};
 
 // Handle date selection
 const onDateSelect = (date: Date | Date[]) => {
   menu.value = false;
-  
+
   const selectedDateValue = Array.isArray(date) ? date[0] : date;
   if (!selectedDateValue) return;
-  
+
   selectedDate.value = selectedDateValue;
   const { startTs, endTs } = getWeekBoundaries(selectedDateValue);
-  
+
   currentWeekStart.value = startTs;
   currentWeekEnd.value = endTs;
-  
+
   loadEvents();
 };
 
 const loadEvents = async () => {
   if (!user.value?.id) return;
-  
+
   const timeRange: TimeRange = {
     startTs: currentWeekStart.value,
     endTs: currentWeekEnd.value
   };
-  
+
   await eventStore.getEventsFromUserWithTimerange(user.value.id, timeRange);
 };
 
