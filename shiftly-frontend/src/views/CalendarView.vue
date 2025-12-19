@@ -154,6 +154,12 @@ const openEditEvent = (event: FrontEndEvent) => {
   dialogOpen.value = true
 }
 
+const toUTCISOString = (dateStr: string | number | Date) => {
+  const d = typeof dateStr === 'string' ? new Date(dateStr) :
+            typeof dateStr === 'number' ? new Date(dateStr) : dateStr;
+  return d.toISOString(); // immer UTC mit Z
+}
+
 // Speichern unterschied zwischen neu und editieren mit Hilfe der ID -> -1 = neu
 const onSaveEvent = (ev: FrontEndEvent) => {
   const index = calendarEvents.value.findIndex(e => e.eventId === ev.eventId)
@@ -161,11 +167,13 @@ const onSaveEvent = (ev: FrontEndEvent) => {
   console.log('Saving event:', index, ev)
   if (index === -1 || ev.eventId < 0) {
     console.log('Creating new event')
+    console.log(   toUTCISOString(ev.startTimestamp),
+)
     eventStore.createCalendarEvent({
       name: ev.name,
       description: ev.description,
-      startTimestamp: ev.startTimestamp,
-      endTimestamp: ev.endTimestamp,
+      startTimestamp: toUTCISOString(ev.startTimestamp),
+      endTimestamp: toUTCISOString(ev.endTimestamp),
       isBreak: ev.break,
       userId: user.value!.id
     })
