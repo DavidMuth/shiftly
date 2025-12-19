@@ -201,7 +201,7 @@ const exportPDF = () => {
 
   const tableColumn = ['Event ID', 'Name', 'Description', 'Start', 'End', 'Break'];
 
-  const tableRows = events.value.map(event => [
+  const tableRows = weeklyEvents.value.map(event => [
     event.eventId,
     event.name,
     event.description,
@@ -223,6 +223,25 @@ const exportPDF = () => {
   const safeWeekRange = weekRange.value.replace(/[^a-zA-Z0-9]/g, '_');
   doc.save(`events_${safeWeekRange}.pdf`);
 };
+
+const weeklyEvents = computed(() => {
+  if (!events.value || !selectedDate.value) return [];
+
+  // Berechne Start und Ende der Woche für selectedDate
+  const { startTs, endTs } = getWeekBoundaries(selectedDate.value);
+
+  return events.value.filter(event => {
+    const eventStart = new Date(event.startTimestamp).getTime();
+    const eventEnd = new Date(event.endTimestamp).getTime();
+
+    // Event startet oder endet innerhalb der Woche oder deckt die ganze Woche ab
+    return (
+      (eventStart >= startTs && eventStart < endTs) ||
+      (eventEnd >= startTs && eventEnd < endTs) ||
+      (eventStart <= startTs && eventEnd >= endTs)
+    );
+  });
+});
 
 // Handle date selection
 const onDateSelect = (date: Date | Date[]) => {
