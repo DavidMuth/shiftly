@@ -64,7 +64,7 @@
            :weekdays="[1, 2, 3, 4, 5, 6, 0]"
         >
           <template v-slot:event="{ event, timed }">
-            <div class="v-event-draggable" style="width: 100%; height: 100%;"   @dblclick.stop="openEditEvent(event)">
+            <div class="v-event-draggable" style="width: 100%; height: 100%;"   @dblclick.stop="openEditEvent(event as any as FrontEndEvent)">
               <strong>{{ getDay(event.start) }}</strong> - {{ event.name }}
             </div>
             <div

@@ -3,11 +3,10 @@
     <v-main>
       <v-container fluid class="fill-height pa-0">
         <v-row no-gutters class="fill-height">
-          <!-- Main Content Area -->
           <v-col cols="12" class="d-flex flex-column align-center justify-center pa-0">
-            <!-- Tracking Circle Container -->
+            <!-- Tracking Circle -->
             <div class="tracking-container">
-              <!-- Animated Circle Border - Hidden on Mobile -->
+              <!-- Animated Circle Border -->
               <svg v-if="!smAndDown" class="progress-ring" viewBox="0 0 900 900" preserveAspectRatio="xMidYMid meet">
                 <circle
                   class="progress-ring-circle-bg"
@@ -59,7 +58,7 @@
                     ></v-switch>
                   </div>
 
-                  <!-- Event Name Input -->
+                  <!-- Event Name -->
                   <v-text-field
                     v-model="eventName"
                     label="Event Name"
@@ -76,7 +75,7 @@
                     </template>
                   </v-text-field>
 
-                  <!-- Event Description Input -->
+                  <!-- Event Description -->
                   <v-textarea
                     v-model="eventDescription"
                     label="Event Description"
@@ -94,7 +93,7 @@
                     </template>
                   </v-textarea>
 
-                  <!-- Start Button -->
+                  <!-- Start / Stop Button -->
                   <v-btn
                     :color="isBreak ? 'orange-darken-2' : 'indigo'"
                     size="x-large"
@@ -201,10 +200,9 @@ import { ref, computed, onUnmounted } from 'vue'
 import { useTheme, useDisplay } from 'vuetify'
 
 const theme = useTheme()
-const { xs, smAndDown } = useDisplay()
+const { smAndDown } = useDisplay()
 const eventStore = useEventStore();
 
-// State
 const isTracking = ref(false)
 const isBreak = ref(false)
 const eventId = ref();
@@ -225,7 +223,7 @@ const hours = computed(() => String(Math.floor(elapsedSeconds.value / 3600)).pad
 const minutes = computed(() => String(Math.floor((elapsedSeconds.value % 3600) / 60)).padStart(2, '0'))
 const seconds = computed(() => String(elapsedSeconds.value % 60).padStart(2, '0'))
 
-// Responsive card dimensions
+// Responsive card
 const cardWidth = computed(() => {
   if (smAndDown.value) return '90vw'
   return 400
@@ -236,7 +234,7 @@ const cardHeight = computed(() => {
   return 500
 })
 
-// Timer functions
+// Timer
 const updateTimer = () => {
   if (startTime.value) {
     const now = Date.now()
@@ -258,7 +256,7 @@ const stopTimer = () => {
   startTime.value = null
 }
 
-// Methods
+// Start / Stop Tracking
 const startTracking = async () => {
   if (!eventName.value) return
   
@@ -271,6 +269,7 @@ const startTracking = async () => {
   // Start the frontend timer
   startTimer()
   
+  // Create backend event
   eventId.value = await eventStore.startTracking(
     eventName.value,
     eventDescription.value,
@@ -283,6 +282,7 @@ const stopTracking = async () => {
   // Stop the frontend timer
   stopTimer()
   
+  // Stop backend event
   eventId.value = await eventStore.stopTracking(
     eventId.value,
     Date.now()
@@ -371,10 +371,10 @@ onUnmounted(() => {
 
 .tracking-content-active {
   background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%);
-  animation: gentle-pulse 3s ease-in-out infinite;
+  animation: pulse 3s ease-in-out infinite;
 }
 
-@keyframes gentle-pulse {
+@keyframes pulse {
   0%, 100% {
     transform: scale(1);
     box-shadow: 0 8px 32px rgba(63, 81, 181, 0.3);

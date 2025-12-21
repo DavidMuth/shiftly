@@ -111,6 +111,69 @@
             </div>
           </v-card-text>
         </v-card>
+
+        <!-- Working Hours Balance Card -->
+        <v-card class="mb-6" elevation="2" rounded="lg">
+          <v-card-title class="text-h6 font-weight-bold pa-6 pb-4">
+            Time Credit
+          </v-card-title>
+          
+          <v-card-text class="pa-6 pt-0">
+            <div class="text-body-2 text-grey-darken-1 mb-2">{{ weekRangeDisplay }}</div>
+            
+            <!-- Balance Chart -->
+            <div class="balance-bar-container">
+              <!-- Scale markers -->
+              <div class="scale-markers">
+                <span 
+                  v-for="mark in scaleMarkers" 
+                  :key="mark"
+                  class="scale-mark"
+                  :style="{ left: getScalePosition(mark) + '%' }"
+                >
+                  {{ mark > 0 ? '+' : '' }}{{ mark }}
+                </span>
+              </div>
+              
+              <div class="balance-track">
+                <!-- Zero line -->
+                <div class="zero-line"></div>
+                
+                <!-- Balance bar -->
+                <div 
+                  class="balance-bar"
+                  :class="totalBalance >= 0 ? 'positive' : 'negative'"
+                  :style="getBalanceBarStyle"
+                >
+                  <span class="balance-value">
+                    {{ totalBalance >= 0 ? '+' : '' }}{{ Math.abs(totalBalance).toFixed(1) }}h
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Stats Row -->
+            <v-row class="mt-8">
+              <v-col cols="12" sm="4">
+                <div class="text-body-2 text-grey-darken-1 mb-1">Target Hours</div>
+                <div class="text-h6 font-weight-bold">{{ user?.workingHours }}h</div>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="text-body-2 text-grey-darken-1 mb-1">Actual Hours</div>
+                <div class="text-h6 font-weight-bold">{{ totalWorkingHours }}h</div>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="text-body-2 text-grey-darken-1 mb-1">Balance</div>
+                <div 
+                  class="text-h6 font-weight-bold" 
+                  :class="totalBalance >= 0 ? 'text-success' : 'text-error'"
+                >
+                  {{ totalBalance >= 0 ? '+' : '' }}{{ totalBalance.toFixed(1) }}h
+                </div>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
       </v-container>
     </v-main>
   </v-app>
@@ -130,7 +193,8 @@ import autoTable from 'jspdf-autotable';
 const userStore = useUserStore();
 const eventStore = useEventStore();
 const user = computed(() => userStore.getUser);
-const chartData = computed(() => eventStore.dailyChartData);
+
+const chartData = computed(() => eventStore.dailyChartData); // Data for the Time Tracking chart, formatted: { date: string; name: string; workingHours: number; breakTime: number }
 const events = computed(() => eventStore.getEvents);
 
 const menu = ref(false);
@@ -158,7 +222,7 @@ const axis: ChartAxis = {
   }
 };
 
-// Calculate total hours
+// Calculate total work & break hours
 const totalWorkingHours = computed(() => {
   if (!chartData.value || chartData.value.length === 0) return 0;
   return chartData.value.reduce((sum, day) => sum + day.workingHours, 0).toFixed(1);
@@ -169,13 +233,13 @@ const totalBreakTime = computed(() => {
   return chartData.value.reduce((sum, day) => sum + day.breakTime, 0).toFixed(1);
 });
 
-// Format the week range display
+// Format the week range for the date range picker
 const weekRange = computed(() => {
   const start = new Date(currentWeekStart.value);
   const end = new Date(currentWeekEnd.value - 1);
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('de', {
       day: 'numeric',
       month: 'short',
       year: '2-digit'
@@ -266,7 +330,10 @@ const loadEvents = async () => {
     startTs: currentWeekStart.value,
     endTs: currentWeekEnd.value
   };
-
+  
+  // Set the week range in the store so the getter knows what week to display
+  eventStore.setWeekRange(currentWeekStart.value, currentWeekEnd.value);
+  
   await eventStore.getEventsFromUserWithTimerange(user.value.id, timeRange);
 };
 
@@ -284,15 +351,78 @@ onMounted(async () => {
   window.addEventListener('resize', updateChartWidth);
 });
 
+
+// Update events on user change
 watch(user, async (newUser) => {
   if (newUser?.id) {
     await loadEvents();
   }
 }, { immediate: true });
+
+// Calculate total balance (actual - target)
+const totalBalance = computed(() => {
+  const actual = parseFloat(totalWorkingHours.value as string);
+  const target = user.value?.workingHours || 0;
+  return actual - target;
+});
+
+// Week range display for the balance card
+const weekRangeDisplay = computed(() => {
+  const start = new Date(currentWeekStart.value);
+  const end = new Date(currentWeekEnd.value - 1);
+  
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('de', { 
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+  
+  return `From ${formatDate(start)} - ${formatDate(end)}`;
+});
+
+// Generate scale markers (e.g., -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5)
+const scaleMarkers = computed(() => {
+  const maxRange = Math.max(Math.abs(totalBalance.value), 5);
+  const step = maxRange > 10 ? 2 : 1;
+  const markers = [];
+  
+  for (let i = -Math.ceil(maxRange); i <= Math.ceil(maxRange); i += step) {
+    markers.push(i);
+  }
+  
+  // Always include 0
+  if (!markers.includes(0)) {
+    markers.push(0);
+    markers.sort((a, b) => a - b);
+  }
+  
+  return markers;
+});
+
+// Calculate position for scale markers (percentage)
+const getScalePosition = (value: number) => {
+  const maxRange = Math.max(Math.abs(totalBalance.value), 5);
+  const range = maxRange * 2; // total range (negative to positive)
+  const position = ((value + maxRange) / range) * 100;
+  return Math.max(0, Math.min(100, position));
+};
+
+// Get style for the balance bar
+const getBalanceBarStyle = computed(() => {
+  const maxRange = Math.max(Math.abs(totalBalance.value), 5);
+  const percentage = (Math.abs(totalBalance.value) / maxRange) * 50; // 50% is half the width
+  
+  return {
+    width: `${Math.min(percentage, 50)}%`
+  };
+});
+
 </script>
 
 <style scoped>
-.legend-dot {
+.legend-dot { 
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -301,5 +431,73 @@ watch(user, async (newUser) => {
 .chart-container {
   width: 100%;
   overflow-x: auto;
+}
+
+.balance-bar-container {
+  position: relative;
+  padding: 20px 0;
+}
+
+
+.scale-markers {
+  position: relative;
+  height: 20px;
+  margin-bottom: 8px;
+}
+
+.scale-mark {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.balance-track {
+  position: relative;
+  height: 60px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.zero-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #999;
+  z-index: 1;
+}
+
+.balance-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.balance-bar.positive {
+  background: #4CAF50;
+  left: 50%;
+}
+
+.balance-bar.negative {
+  background: #F44336;
+  right: 50%;
+}
+
+.balance-value {
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  white-space: nowrap;
+  padding: 0 16px;
 }
 </style>

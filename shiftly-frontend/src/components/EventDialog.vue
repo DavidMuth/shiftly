@@ -175,7 +175,7 @@ watch(
   { deep: true }
 );
 
-const onStartDateChange = (val: string | Date) => {
+const onStartDateChange = (val: string | Date | null) => {
   if (!val) {
     startDate.value = null;
     return;
@@ -195,7 +195,7 @@ const onStartDateChange = (val: string | Date) => {
     `${startDate.value}T${startTime.value}:00`;
 };
 
-const onEndDateChange = (val: string | Date) => {
+const onEndDateChange = (val: string | Date | null) => {
   if (!val) {
     endDate.value = null;
     return;
