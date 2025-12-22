@@ -19,7 +19,7 @@ A simple time tracking application for managing work and break events.
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 17
 - Node.js and npm
 - Gradle
 
